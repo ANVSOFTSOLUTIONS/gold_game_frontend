@@ -15,11 +15,17 @@ export type Screen =
   | 'referral'
   | 'kyc'
   | 'notif'
-  | 'support';
+  | 'support'
+  | 'admin';
 
 export type AuthMode = 'login' | 'signup';
 export type PayMethod = 'upi' | 'card' | 'net';
 export type BoardTab = 'today' | 'week' | 'all';
+
+export type AdminConfigKey = 'round' | 'payout' | 'minStake' | 'maxStake' | 'rake' | 'autoPay';
+
+const ROUND_SECONDS: Record<string, number> = { '30s': 30, '60s': 60, '3m': 180 };
+const parsePayoutMultiplier = (v: string) => parseFloat(v.replace('×', ''));
 
 export interface Txn {
   label: string;
@@ -57,6 +63,11 @@ interface GameState {
 
   txns: Txn[];
 
+  roundLen: number;
+  payoutMultiplier: number;
+  cfg: Record<AdminConfigKey, string>;
+  setConfig: (key: AdminConfigKey, value: string) => void;
+
   go: (screen: Screen) => void;
   togglePick: (n: number) => void;
   setStake: (v: number) => void;
@@ -80,7 +91,7 @@ interface GameState {
   redeem: (cost: number, ok: boolean) => void;
 }
 
-const ROUND_LEN = 47;
+const ROUND_LEN = 60;
 
 export const useGameStore = create<GameState>((set, get) => ({
   screen: 'onboard',
@@ -96,6 +107,16 @@ export const useGameStore = create<GameState>((set, get) => ({
   picks: [],
   stake: 50,
   t: ROUND_LEN,
+  roundLen: ROUND_LEN,
+  payoutMultiplier: 9,
+  cfg: {
+    round: '60s',
+    payout: '9×',
+    minStake: '₹10',
+    maxStake: '₹500',
+    rake: '4%',
+    autoPay: '₹5,000',
+  },
   phase: 'open',
   drawn: null,
   showResult: false,
@@ -118,11 +139,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   go: (screen) => {
     const { authed } = get();
-    if ((screen === 'game' || screen === 'wallet') && !authed) {
+    if ((screen === 'game' || screen === 'wallet' || screen === 'admin') && !authed) {
       set({ screen: 'auth' });
       return;
     }
-    set((s) => ({ screen, t: screen === 'game' ? ROUND_LEN : s.t }));
+    set((s) => ({ screen, t: screen === 'game' ? s.roundLen : s.t }));
   },
 
   togglePick: (n) =>
@@ -154,7 +175,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((s) => ({
       showResult: false,
       picks: [],
-      t: 60,
+      t: s.roundLen,
       drawn: null,
       roundId: s.roundId + 1,
       phase: 'open',
@@ -182,12 +203,20 @@ export const useGameStore = create<GameState>((set, get) => ({
   setPayMethod: (m) => set({ payMethod: m }),
 
   toggleAuthMode: () => set((s) => ({ authMode: s.authMode === 'login' ? 'signup' : 'login' })),
-  doAuth: () => set({ authed: true, screen: 'game', t: ROUND_LEN }),
+  doAuth: () => set((s) => ({ authed: true, screen: 'game', t: s.roundLen })),
   logout: () => set({ authed: false, screen: 'onboard', authMode: 'login' }),
   goSignup: () => set({ screen: 'auth', authMode: 'signup' }),
   goLogin: () => set({ screen: 'auth', authMode: 'login' }),
 
   setBoardTab: (t) => set({ boardTab: t }),
+
+  setConfig: (key, value) =>
+    set((s) => {
+      const cfg = { ...s.cfg, [key]: value };
+      if (key === 'round') return { cfg, roundLen: ROUND_SECONDS[value] ?? s.roundLen };
+      if (key === 'payout') return { cfg, payoutMultiplier: parsePayoutMultiplier(value) };
+      return { cfg };
+    }),
 
   redeem: (cost, ok) => {
     if (!ok) return;
@@ -199,7 +228,7 @@ function draw(set: (partial: Partial<GameState>) => void, get: () => GameState) 
   const s = get();
   const n = 1 + Math.floor(Math.random() * 9);
   const hit = s.picks.includes(n);
-  const win = hit ? s.stake * 9 : 0;
+  const win = hit ? s.stake * s.payoutMultiplier : 0;
   set({
     drawn: n,
     showResult: true,

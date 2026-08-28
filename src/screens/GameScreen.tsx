@@ -15,6 +15,7 @@ export default function GameScreen() {
   const t = useGameStore((s) => s.t);
   const picks = useGameStore((s) => s.picks);
   const stake = useGameStore((s) => s.stake);
+  const payoutMultiplier = useGameStore((s) => s.payoutMultiplier);
   const lastDraws = useGameStore((s) => s.lastDraws);
   const drawn = useGameStore((s) => s.drawn);
   const showResult = useGameStore((s) => s.showResult);
@@ -58,7 +59,7 @@ export default function GameScreen() {
               >
                 <Text style={[styles.cellNum, { color: on ? colors.acc : colors.text }]}>{n}</Text>
                 <Text style={[styles.cellSub, { color: on ? 'rgba(0,229,160,0.75)' : colors.muted }]}>
-                  {on ? 'PICKED' : '9× PAY'}
+                  {on ? 'PICKED' : `${payoutMultiplier}× PAY`}
                 </Text>
               </Pressable>
             );
@@ -93,7 +94,7 @@ export default function GameScreen() {
           <View style={styles.summaryDivider} />
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>If your number hits</Text>
-            <Text style={styles.summaryWin}>₹{money(stake * 9)}</Text>
+            <Text style={styles.summaryWin}>₹{money(stake * payoutMultiplier)}</Text>
           </View>
         </View>
 
@@ -125,7 +126,7 @@ export default function GameScreen() {
           <Text style={styles.resultTitle}>{hit ? 'You hit it' : 'Not this time'}</Text>
           <Text style={styles.resultBody}>
             {hit
-              ? `₹${money(stake * 9)} credited to your wallet, plus 100 reward points.`
+              ? `₹${money(stake * payoutMultiplier)} credited to your wallet, plus 100 reward points.`
               : `Number ${drawn} was drawn. You earned 10 points for playing.`}
           </Text>
           <Pressable style={styles.nextBtn} onPress={nextRound}>

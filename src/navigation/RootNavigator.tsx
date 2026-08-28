@@ -19,6 +19,7 @@ import ReferralScreen from '../screens/ReferralScreen';
 import KycScreen from '../screens/KycScreen';
 import NotifScreen from '../screens/NotifScreen';
 import SupportScreen from '../screens/SupportScreen';
+import AdminScreen from '../screens/AdminScreen';
 
 const SCREEN_MAP: Record<Screen, React.ComponentType> = {
   onboard: OnboardScreen,
@@ -36,6 +37,7 @@ const SCREEN_MAP: Record<Screen, React.ComponentType> = {
   kyc: KycScreen,
   notif: NotifScreen,
   support: SupportScreen,
+  admin: AdminScreen,
 };
 
 const BACK_MAP: Partial<Record<Screen, Screen>> = {
@@ -47,6 +49,7 @@ const BACK_MAP: Partial<Record<Screen, Screen>> = {
   support: 'profile',
   referral: 'rewards',
   auth: 'onboard',
+  admin: 'profile',
 };
 
 export default function RootNavigator() {
