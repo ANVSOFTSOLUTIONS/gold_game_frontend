@@ -13,6 +13,7 @@ const ROWS: { label: string; value: string; color: string; to: ScreenKey }[] = [
   { label: 'Notifications', value: '2 NEW', color: colors.textDim, to: 'notif' },
   { label: 'Help & limits', value: 'OPEN', color: colors.textDim, to: 'support' },
   { label: 'Lifetime winnings', value: '₹14,220', color: colors.acc, to: 'history' },
+  { label: 'Admin dashboard', value: 'OPEN', color: colors.purpleLight, to: 'admin' },
 ];
 
 export default function ProfileScreen() {
