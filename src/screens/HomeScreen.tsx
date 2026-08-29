@@ -114,6 +114,16 @@ export default function HomeScreen() {
             Your code <Text style={styles.inviteCode}>NINE-K7QX</Text>
           </Text>
         </Pressable>
+
+        <View style={styles.providerBanner}>
+          <View style={styles.providerMark}>
+            <Text style={styles.providerMarkText}>GL</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.providerLabel}>POWERED BY</Text>
+            <Text style={styles.providerName}>Golden Letters Online Solutions</Text>
+          </View>
+        </View>
       </Screen>
 
       <View style={[styles.ctaWrap, { bottom: 86 + insets.bottom }]} pointerEvents="box-none">
@@ -168,6 +178,23 @@ const styles = StyleSheet.create({
   inviteTitle: { fontFamily: fonts.displaySemi, fontSize: 13, color: colors.purpleLight },
   inviteSub: { fontFamily: fonts.displayReg, fontSize: 12, lineHeight: 17, color: colors.muted, marginTop: 3 },
   inviteCode: { fontFamily: fonts.monoSemi, fontSize: 12, color: colors.text },
+
+  providerBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 14,
+    padding: 14,
+    paddingHorizontal: 16,
+    borderRadius: radii.xl,
+    backgroundColor: colors.card2,
+    borderWidth: 1,
+    borderColor: colors.borderSoft,
+  },
+  providerMark: { width: 34, height: 34, borderRadius: radii.sm, backgroundColor: colors.borderFaint, alignItems: 'center', justifyContent: 'center' },
+  providerMarkText: { fontFamily: fonts.monoBold, fontSize: 12, color: colors.textDim },
+  providerLabel: { fontFamily: fonts.monoSemi, fontSize: 9, letterSpacing: 1.6, color: colors.muted },
+  providerName: { fontFamily: fonts.displaySemi, fontSize: 12.5, color: colors.textDim, marginTop: 3 },
 
   ctaWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   cta: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 17, paddingHorizontal: 34, borderRadius: radii.pill, backgroundColor: colors.acc },
