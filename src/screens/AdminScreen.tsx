@@ -37,7 +37,7 @@ const EXPOSURE = EXPOSURE_RAW.map((e) => {
     n: e.n,
     h: e.v,
     liability: money(e.v * 90),
-    barBg: hot ? colors.red : warm ? colors.gold : 'rgba(0,229,160,0.55)',
+    barBg: hot ? colors.red : warm ? colors.gold : 'rgba(232,132,92,0.55)',
     riskColor: hot ? colors.red : warm ? colors.gold : colors.muted,
     numColor: hot ? colors.red : colors.textDim,
   };
@@ -46,7 +46,7 @@ const EXPOSURE = EXPOSURE_RAW.map((e) => {
 const REV_BARS = [
   { d: 'M', v: 58 }, { d: 'T', v: 72 }, { d: 'W', v: 49 }, { d: 'T', v: 88 },
   { d: 'F', v: 96 }, { d: 'S', v: 78 }, { d: 'S', v: 64 },
-].map((r) => ({ ...r, bg: r.v > 90 ? colors.acc : 'rgba(0,229,160,0.35)' }));
+].map((r) => ({ ...r, bg: r.v > 90 ? colors.acc : 'rgba(232,132,92,0.35)' }));
 
 const ADMIN_ROUNDS = [
   { id: '4126', drawn: 7, players: '842', in: '58,400', net: '+₹6,140', up: true },
@@ -113,7 +113,7 @@ export default function AdminScreen() {
             <Pressable
               key={t.key}
               onPress={() => setTab(t.key)}
-              style={[styles.tab, { backgroundColor: active ? 'rgba(0,229,160,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
+              style={[styles.tab, { backgroundColor: active ? 'rgba(232,132,92,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
             >
               <Text style={[styles.tabText, { color: active ? colors.acc : colors.muted }]}>{t.label}</Text>
             </Pressable>
@@ -246,7 +246,7 @@ function PlayersTab() {
           const initials = p.name.split(' ').map((w) => w[0]).join('');
           const plColor = p.pl >= 0 ? colors.acc : colors.red;
           const kycColor = p.kyc === 'VERIFIED' ? colors.acc : p.kyc === 'PENDING' ? colors.gold : colors.muted;
-          const stBg = p.status === 'ACTIVE' ? 'rgba(0,229,160,0.12)' : p.status === 'BLOCKED' ? 'rgba(255,90,54,0.14)' : 'rgba(232,177,76,0.14)';
+          const stBg = p.status === 'ACTIVE' ? 'rgba(232,132,92,0.12)' : p.status === 'BLOCKED' ? 'rgba(255,90,54,0.14)' : 'rgba(232,177,76,0.14)';
           const stColor = p.status === 'ACTIVE' ? colors.acc : p.status === 'BLOCKED' ? colors.red : colors.gold;
           return (
             <View key={p.phone} style={styles.playerCard}>
@@ -304,7 +304,7 @@ function WithdrawalsTab() {
         {WITHDRAWALS.map((w) => {
           const st = status[w.id];
           const kycColor = w.kyc === 'VERIFIED' ? colors.acc : w.kyc === 'PENDING' ? colors.gold : colors.red;
-          const border = st === 'approved' ? 'rgba(0,229,160,0.4)' : st === 'held' ? 'rgba(255,90,54,0.4)' : w.kyc === 'VERIFIED' ? colors.borderSoft : 'rgba(232,177,76,0.28)';
+          const border = st === 'approved' ? 'rgba(232,132,92,0.4)' : st === 'held' ? 'rgba(255,90,54,0.4)' : w.kyc === 'VERIFIED' ? colors.borderSoft : 'rgba(232,177,76,0.28)';
           return (
             <View key={w.id} style={[styles.withdrawCard, { borderColor: border }]}>
               <View style={styles.withdrawTopRow}>
@@ -321,7 +321,7 @@ function WithdrawalsTab() {
               <View style={styles.withdrawActions}>
                 <Pressable
                   onPress={() => setStatus((s) => ({ ...s, [w.id]: 'approved' }))}
-                  style={[styles.approveBtn, { backgroundColor: st === 'approved' ? 'rgba(0,229,160,0.16)' : colors.acc }]}
+                  style={[styles.approveBtn, { backgroundColor: st === 'approved' ? 'rgba(232,132,92,0.16)' : colors.acc }]}
                 >
                   <Text style={[styles.approveBtnText, { color: colors.accDeep }]}>
                     {st === 'approved' ? 'APPROVED' : 'APPROVE'}
@@ -365,7 +365,7 @@ function SettingsTab({ cfg, setConfig }: { cfg: Record<AdminConfigKey, string>; 
                   <Pressable
                     key={v}
                     onPress={() => setConfig(s.key, v)}
-                    style={[styles.settingOpt, { backgroundColor: active ? 'rgba(0,229,160,0.14)' : colors.card2, borderColor: active ? colors.acc : colors.border }]}
+                    style={[styles.settingOpt, { backgroundColor: active ? 'rgba(232,132,92,0.14)' : colors.card2, borderColor: active ? colors.acc : colors.border }]}
                   >
                     <Text style={[styles.settingOptText, { color: active ? colors.acc : colors.muted }]}>{v}</Text>
                   </Pressable>

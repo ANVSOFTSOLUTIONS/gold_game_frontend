@@ -41,8 +41,8 @@ export default function HistoryScreen() {
               style={[
                 styles.chip,
                 {
-                  backgroundColor: r.hit ? 'rgba(0,229,160,0.14)' : colors.card,
-                  borderColor: r.hit ? 'rgba(0,229,160,0.4)' : colors.border,
+                  backgroundColor: r.hit ? 'rgba(232,132,92,0.14)' : colors.card,
+                  borderColor: r.hit ? 'rgba(232,132,92,0.4)' : colors.border,
                 },
               ]}
             >

@@ -49,7 +49,7 @@ export default function WithdrawScreen() {
             <Pressable
               key={c.label}
               onPress={() => setWdAmount(c.v)}
-              style={[styles.chip, { backgroundColor: active ? 'rgba(0,229,160,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
+              style={[styles.chip, { backgroundColor: active ? 'rgba(232,132,92,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
             >
               <Text style={[styles.chipText, { color: active ? colors.acc : colors.textDim }]}>{c.label}</Text>
             </Pressable>

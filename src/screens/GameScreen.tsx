@@ -160,7 +160,7 @@ export default function GameScreen() {
 
       {showResult && (
         <View style={styles.overlay}>
-          <View style={[styles.resultBadge, hit && shadows.glowAcc, { backgroundColor: hit ? 'rgba(0,229,160,0.16)' : colors.card, borderColor: hit ? colors.acc : colors.border }]}>
+          <View style={[styles.resultBadge, hit && shadows.glowAcc, { backgroundColor: hit ? 'rgba(232,132,92,0.16)' : colors.card, borderColor: hit ? colors.acc : colors.border }]}>
             <Text style={[styles.resultNum, { color: hit ? colors.acc : colors.text }]}>{drawn}</Text>
           </View>
           <Text style={styles.resultTitle}>{hit ? 'You hit it' : 'Not this time'}</Text>

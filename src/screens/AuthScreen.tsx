@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,17 +15,7 @@ export default function AuthScreen() {
   const isSignup = authMode === 'signup';
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '']);
   const [agree, setAgree] = useState(true);
-  const otpRefs = useRef<Array<TextInput | null>>([]);
-
-  const setDigit = (i: number, v: string) => {
-    const clean = v.replace(/[^0-9]/g, '').slice(-1);
-    const next = [...otp];
-    next[i] = clean;
-    setOtp(next);
-    if (clean && i < 3) otpRefs.current[i + 1]?.focus();
-  };
 
   return (
     <LinearGradient colors={['#152437', colors.bg]} style={styles.root} locations={[0, 0.7]}>
@@ -38,7 +28,7 @@ export default function AuthScreen() {
         <Text style={styles.sub}>
           {isSignup
             ? '18+ only. Takes about thirty seconds.'
-            : 'Enter your mobile number and we will text you a code.'}
+            : 'Enter your mobile number to log in.'}
         </Text>
 
         {isSignup && (
@@ -70,26 +60,6 @@ export default function AuthScreen() {
           </View>
         </View>
 
-        <View style={{ marginBottom: 20 }}>
-          <Text style={styles.fieldLabel}>OTP</Text>
-          <View style={styles.otpRow}>
-            {otp.map((v, i) => (
-              <TextInput
-                key={i}
-                ref={(r) => {
-                  otpRefs.current[i] = r;
-                }}
-                value={v}
-                onChangeText={(t) => setDigit(i, t)}
-                keyboardType="number-pad"
-                maxLength={1}
-                style={[styles.otpBox, { borderColor: v ? 'rgba(0,229,160,0.45)' : colors.border }]}
-              />
-            ))}
-          </View>
-          <Text style={styles.resend}>Resend code in 0:24</Text>
-        </View>
-
         {isSignup && (
           <Pressable style={styles.termsRow} onPress={() => setAgree((a) => !a)}>
             <View style={[styles.checkbox, { backgroundColor: agree ? colors.acc : 'transparent', borderColor: agree ? colors.acc : colors.border }]}>
@@ -102,7 +72,7 @@ export default function AuthScreen() {
         )}
 
         <PrimaryButton
-          label={isSignup ? 'CREATE ACCOUNT' : 'VERIFY & CONTINUE'}
+          label={isSignup ? 'CREATE ACCOUNT' : 'LOG IN'}
           onPress={doAuth}
           style={{ marginBottom: 16 }}
         />
@@ -147,24 +117,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     backgroundColor: colors.card2,
     borderWidth: 1,
-    borderColor: 'rgba(0,229,160,0.4)',
+    borderColor: 'rgba(232,132,92,0.4)',
   },
   mobilePrefix: { fontFamily: fonts.monoSemi, fontSize: 15, color: colors.muted },
   mobileDivider: { width: 1, height: 18, backgroundColor: colors.border },
   mobileInput: { flex: 1, fontFamily: fonts.monoSemi, fontSize: 15, letterSpacing: 1, color: colors.text, padding: 0 },
-  otpRow: { flexDirection: 'row', gap: 9 },
-  otpBox: {
-    flex: 1,
-    aspectRatio: 1,
-    borderRadius: radii.md,
-    backgroundColor: colors.card2,
-    borderWidth: 1,
-    textAlign: 'center',
-    fontFamily: fonts.monoBold,
-    fontSize: 22,
-    color: colors.text,
-  },
-  resend: { fontFamily: fonts.mono, fontSize: 11, color: colors.muted, marginTop: 10 },
   termsRow: { flexDirection: 'row', gap: 11, alignItems: 'flex-start', marginBottom: 20 },
   checkbox: {
     width: 18,

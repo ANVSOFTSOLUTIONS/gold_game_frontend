@@ -66,7 +66,7 @@ export default function WalletScreen() {
 
 const styles = StyleSheet.create({
   title: { fontFamily: fonts.display, fontSize: 26, letterSpacing: -0.7, color: colors.text, marginBottom: 20 },
-  balanceCard: { borderRadius: radii.xxl, padding: 24, borderWidth: 1, borderColor: 'rgba(0,229,160,0.22)', marginBottom: 14 },
+  balanceCard: { borderRadius: radii.xxl, padding: 24, borderWidth: 1, borderColor: 'rgba(232,132,92,0.22)', marginBottom: 14 },
   balanceLabel: { fontFamily: fonts.monoSemi, fontSize: 10, letterSpacing: 2, color: colors.acc },
   balanceValue: { fontFamily: fonts.monoBold, fontSize: 42, letterSpacing: -2, color: colors.text, marginTop: 10 },
   subRow: { flexDirection: 'row', gap: 18, marginTop: 14 },

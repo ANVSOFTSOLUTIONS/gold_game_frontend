@@ -23,7 +23,7 @@ export default function KycScreen() {
 
       <View style={{ gap: 10, marginBottom: 20 }}>
         {STEPS.map((k) => (
-          <View key={k.badge} style={[styles.stepRow, { borderColor: k.ok ? 'rgba(0,229,160,0.3)' : colors.border }]}>
+          <View key={k.badge} style={[styles.stepRow, { borderColor: k.ok ? 'rgba(232,132,92,0.3)' : colors.border }]}>
             <View style={[styles.badge, { backgroundColor: k.ok ? colors.acc : 'rgba(255,255,255,0.08)' }]}>
               <Text style={[styles.badgeText, { color: k.ok ? colors.accDeep : colors.muted }]}>{k.badge}</Text>
             </View>

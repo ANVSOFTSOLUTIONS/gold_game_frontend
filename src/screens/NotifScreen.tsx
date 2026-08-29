@@ -25,7 +25,7 @@ export default function NotifScreen() {
         {NOTIFS.map((n, i) => (
           <View
             key={i}
-            style={[styles.row, { backgroundColor: n.unread ? 'rgba(0,229,160,0.06)' : colors.card2, borderColor: n.unread ? 'rgba(0,229,160,0.22)' : colors.borderSoft }]}
+            style={[styles.row, { backgroundColor: n.unread ? 'rgba(232,132,92,0.06)' : colors.card2, borderColor: n.unread ? 'rgba(232,132,92,0.22)' : colors.borderSoft }]}
           >
             <View style={[styles.dot, { backgroundColor: n.unread ? colors.acc : 'rgba(255,255,255,0.15)' }]} />
             <View style={{ flex: 1 }}>

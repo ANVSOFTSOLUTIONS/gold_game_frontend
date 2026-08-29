@@ -43,7 +43,7 @@ export default function AddMoneyScreen() {
             <Pressable
               key={v}
               onPress={() => setAddAmount(v)}
-              style={[styles.chip, { backgroundColor: active ? 'rgba(0,229,160,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
+              style={[styles.chip, { backgroundColor: active ? 'rgba(232,132,92,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
             >
               <Text style={[styles.chipText, { color: active ? colors.acc : colors.textDim }]}>+{v}</Text>
             </Pressable>
@@ -59,7 +59,7 @@ export default function AddMoneyScreen() {
             <Pressable
               key={m.key}
               onPress={() => setPayMethod(m.key)}
-              style={[styles.methodRow, { backgroundColor: active ? 'rgba(0,229,160,0.08)' : colors.card2, borderColor: active ? 'rgba(0,229,160,0.5)' : colors.divider }]}
+              style={[styles.methodRow, { backgroundColor: active ? 'rgba(232,132,92,0.08)' : colors.card2, borderColor: active ? 'rgba(232,132,92,0.5)' : colors.divider }]}
             >
               <View>
                 <Text style={styles.methodName}>{m.name}</Text>

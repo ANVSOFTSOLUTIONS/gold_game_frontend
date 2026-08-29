@@ -15,8 +15,8 @@ const LEADERS = [
   { rank: 2, name: 'Priya N.', initials: 'PN', wins: '19', amt: '14,400', av: '#C9CEDB', me: false },
   { rank: 3, name: 'Arjun K.', initials: 'AK', wins: '17', amt: '12,150', av: '#C08A4A', me: false },
   { rank: 4, name: 'Meera D.', initials: 'MD', wins: '14', amt: '9,900', av: '#7C5CFF', me: false },
-  { rank: 5, name: 'Sanjay R.', initials: 'SR', wins: '12', amt: '8,100', av: '#00E5A0', me: false },
-  { rank: 24, name: 'You · Rahul M.', initials: 'RM', wins: '4', amt: '1,800', av: '#00E5A0', me: true },
+  { rank: 5, name: 'Sanjay R.', initials: 'SR', wins: '12', amt: '8,100', av: '#E8845C', me: false },
+  { rank: 24, name: 'You · Rahul M.', initials: 'RM', wins: '4', amt: '1,800', av: '#E8845C', me: true },
 ];
 
 export default function LeaderboardScreen() {
@@ -35,7 +35,7 @@ export default function LeaderboardScreen() {
             <Pressable
               key={t.key}
               onPress={() => setBoardTab(t.key)}
-              style={[styles.tab, { backgroundColor: active ? 'rgba(0,229,160,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
+              style={[styles.tab, { backgroundColor: active ? 'rgba(232,132,92,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
             >
               <Text style={[styles.tabText, { color: active ? colors.acc : colors.muted }]}>{t.label}</Text>
             </Pressable>
@@ -47,7 +47,7 @@ export default function LeaderboardScreen() {
         {LEADERS.map((l) => (
           <View
             key={l.rank}
-            style={[styles.row, { backgroundColor: l.me ? 'rgba(0,229,160,0.08)' : colors.card2, borderColor: l.me ? 'rgba(0,229,160,0.4)' : colors.borderSoft }]}
+            style={[styles.row, { backgroundColor: l.me ? 'rgba(232,132,92,0.08)' : colors.card2, borderColor: l.me ? 'rgba(232,132,92,0.4)' : colors.borderSoft }]}
           >
             <Text style={[styles.rank, { color: l.rank <= 3 ? colors.gold : colors.muted }]}>{l.rank}</Text>
             <View style={[styles.avatar, { backgroundColor: l.av }]}>

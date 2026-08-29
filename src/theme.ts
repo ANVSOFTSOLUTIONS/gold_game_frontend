@@ -1,7 +1,7 @@
 export const colors = {
-  acc: '#00E5A0',
-  accHover: '#5CFFC8',
-  accDeep: '#06251A',
+  acc: '#E8845C',
+  accHover: '#F2A67E',
+  accDeep: '#3A1B0E',
   gold: '#E8B14C',
   muted: '#8A90A2',
   red: '#FF5A36',
@@ -47,7 +47,7 @@ export const spacing = {
 
 export const shadows = {
   glowAcc: {
-    shadowColor: '#00E5A0',
+    shadowColor: '#E8845C',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.45,
     shadowRadius: 16,

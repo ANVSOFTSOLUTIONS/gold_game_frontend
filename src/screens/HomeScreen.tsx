@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   leaderboardArrow: { fontFamily: fonts.monoSemi, fontSize: 14, color: colors.acc },
 
   ruleRow: { flexDirection: 'row', gap: 13, alignItems: 'flex-start', padding: 13, paddingHorizontal: 14, borderRadius: radii.md, backgroundColor: colors.card2, borderWidth: 1, borderColor: colors.borderSoft },
-  ruleBadge: { width: 22, height: 22, borderRadius: 7, backgroundColor: 'rgba(0,229,160,0.14)', alignItems: 'center', justifyContent: 'center' },
+  ruleBadge: { width: 22, height: 22, borderRadius: 7, backgroundColor: 'rgba(232,132,92,0.14)', alignItems: 'center', justifyContent: 'center' },
   ruleBadgeText: { fontFamily: fonts.monoBold, fontSize: 11, color: colors.acc },
   ruleTitle: { fontFamily: fonts.displaySemi, fontSize: 13, lineHeight: 17, color: colors.text },
   ruleBody: { fontFamily: fonts.displayReg, fontSize: 12, lineHeight: 17, color: colors.muted, marginTop: 3 },
