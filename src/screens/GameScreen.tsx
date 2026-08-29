@@ -14,6 +14,7 @@ export default function GameScreen() {
   const roundId = useGameStore((s) => s.roundId);
   const balance = useGameStore((s) => s.balance);
   const t = useGameStore((s) => s.t);
+  const roundLen = useGameStore((s) => s.roundLen);
   const picks = useGameStore((s) => s.picks);
   const stake = useGameStore((s) => s.stake);
   const payoutMultiplier = useGameStore((s) => s.payoutMultiplier);
@@ -46,7 +47,7 @@ export default function GameScreen() {
         </View>
 
         <View style={styles.timerWrap}>
-          <TimerRing t={t} phaseLabel={phaseLabel} />
+          <TimerRing t={t} total={roundLen} phaseLabel={phaseLabel} />
         </View>
 
         <View style={styles.grid}>

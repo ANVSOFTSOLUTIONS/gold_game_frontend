@@ -7,7 +7,7 @@ import BackButton from '../components/BackButton';
 
 const NOTIFS = [
   { title: 'You won ₹450', body: 'Round #4126 drew 7. Credited to your wallet.', when: '2 min ago', unread: true },
-  { title: 'Round #4127 is open', body: 'Bets close in under a minute.', when: 'just now', unread: true },
+  { title: 'Round #4127 is open', body: 'Bets close in 30 minutes.', when: 'just now', unread: true },
   { title: 'Anita joined with your code', body: '₹50 referral bonus added to your wallet.', when: '4 days ago', unread: false },
   { title: 'Withdrawal completed', body: '₹800 sent to rahul@okaxis.', when: '2 days ago', unread: false },
   { title: 'Complete your KYC', body: 'Raise your daily withdrawal limit to ₹25,000.', when: '1 week ago', unread: false },

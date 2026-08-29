@@ -24,7 +24,7 @@ export type BoardTab = 'today' | 'week' | 'all';
 
 export type AdminConfigKey = 'round' | 'payout' | 'minStake' | 'maxStake' | 'rake' | 'autoPay';
 
-const ROUND_SECONDS: Record<string, number> = { '30s': 30, '60s': 60, '3m': 180 };
+const ROUND_SECONDS: Record<string, number> = { '30s': 30, '60s': 60, '3m': 180, '30m': 1800 };
 const parsePayoutMultiplier = (v: string) => parseFloat(v.replace('×', ''));
 
 export interface Txn {
@@ -91,7 +91,7 @@ interface GameState {
   redeem: (cost: number, ok: boolean) => void;
 }
 
-const ROUND_LEN = 60;
+const ROUND_LEN = 1800;
 
 export const useGameStore = create<GameState>((set, get) => ({
   screen: 'onboard',
@@ -110,7 +110,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   roundLen: ROUND_LEN,
   payoutMultiplier: 9,
   cfg: {
-    round: '60s',
+    round: '30m',
     payout: '9×',
     minStake: '₹10',
     maxStake: '₹500',

@@ -84,7 +84,7 @@ const WITHDRAWALS: Withdrawal[] = [
 ];
 
 const SETTINGS_META: { key: AdminConfigKey; label: string; help: string; opts: string[] }[] = [
-  { key: 'round', label: 'Round length', help: 'Time bets stay open before the draw. Changes the live timer immediately.', opts: ['30s', '60s', '3m'] },
+  { key: 'round', label: 'Round length', help: 'Time bets stay open before the draw. Changes the live timer immediately.', opts: ['30s', '60s', '3m', '30m'] },
   { key: 'payout', label: 'Payout multiplier', help: 'Lower means a wider house edge. Changes payouts on the next draw.', opts: ['8×', '9×', '9.5×'] },
   { key: 'minStake', label: 'Minimum stake', help: 'Per number, per round. (Display only for now.)', opts: ['₹5', '₹10', '₹20'] },
   { key: 'maxStake', label: 'Maximum stake', help: 'Caps single-round liability. (Display only for now.)', opts: ['₹500', '₹1,000', '₹5,000'] },

@@ -8,10 +8,12 @@ const STROKE = 11;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRC = 2 * Math.PI * RADIUS;
 
-export default function TimerRing({ t, phaseLabel }: { t: number; phaseLabel: string }) {
-  const progress = Math.max(0, Math.min(1, t / 60));
+export default function TimerRing({ t, total, phaseLabel }: { t: number; total: number; phaseLabel: string }) {
+  const progress = Math.max(0, Math.min(1, t / total));
   const dashOffset = CIRC * (1 - progress);
-  const clock = `0:${String(t).padStart(2, '0')}`;
+  const mins = Math.floor(t / 60);
+  const secs = t % 60;
+  const clock = `${mins}:${String(secs).padStart(2, '0')}`;
   const urgent = t > 0 && t <= 10;
 
   return (

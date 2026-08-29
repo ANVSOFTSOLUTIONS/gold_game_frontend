@@ -8,7 +8,7 @@ import PrimaryButton from '../components/PrimaryButton';
 
 const STATS = [
   { v: '9×', k: 'PAYOUT' },
-  { v: '60s', k: 'PER ROUND' },
+  { v: '30m', k: 'PER ROUND' },
   { v: '₹10', k: 'MIN STAKE' },
 ];
 
@@ -25,12 +25,12 @@ export default function OnboardScreen() {
         </View>
 
         <Text style={styles.heading}>
-          One number.{'\n'}Sixty seconds.{'\n'}
+          One number.{'\n'}Thirty minutes.{'\n'}
           <Text style={{ color: colors.acc }}>Nine times back.</Text>
         </Text>
 
         <Text style={styles.sub}>
-          Every minute one number between 1 and 9 is drawn. Call it right and your stake returns
+          Every 30 minutes one number between 1 and 9 is drawn. Call it right and your stake returns
           ninefold, straight to your wallet.
         </Text>
 

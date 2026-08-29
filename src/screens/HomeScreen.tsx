@@ -9,7 +9,7 @@ import SectionLabel from '../components/SectionLabel';
 
 const RULES = [
   { n: '1', title: 'Pick your numbers', body: 'Any of 1 to 9. Stake each one separately, ₹10 to ₹500.' },
-  { n: '2', title: 'Wait for the draw', body: 'Every 60 seconds one number is drawn for everyone playing.' },
+  { n: '2', title: 'Wait for the draw', body: 'Every 30 minutes one number is drawn for everyone playing.' },
   { n: '3', title: 'Win 9× your stake', body: 'Hit the number and your wallet is credited instantly, plus 100 points.' },
 ];
 
