@@ -22,7 +22,7 @@ export default function HomeScreen() {
   const t = useGameStore((s) => s.t);
   const go = useGameStore((s) => s.go);
 
-  const clock = `0:${String(t).padStart(2, '0')}`;
+  const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 
   return (
     <View style={{ flex: 1 }}>
@@ -73,10 +73,10 @@ export default function HomeScreen() {
         </LinearGradient>
 
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
+          <Pressable style={styles.statCard} onPress={() => go('rewards')}>
             <Text style={styles.statLabel}>REWARD POINTS</Text>
             <Text style={[styles.statValue, { color: colors.gold }]}>{money(points)}</Text>
-          </View>
+          </Pressable>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>WIN STREAK</Text>
             <Text style={styles.statValue}>{streak}</Text>

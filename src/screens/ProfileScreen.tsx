@@ -2,10 +2,10 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, radii } from '../theme';
-import { Screen as ScreenKey, useGameStore } from '../store/useGameStore';
+import { Screen as ScreenKey, money, useGameStore } from '../store/useGameStore';
 import Screen from '../components/Screen';
 
-const ROWS: { label: string; value: string; color: string; to: ScreenKey }[] = [
+const STATIC_ROWS: { label: string; value: string; color: string; to: ScreenKey }[] = [
   { label: 'Verify identity (KYC)', value: 'PENDING', color: colors.gold, to: 'kyc' },
   { label: 'My results', value: '318 ROUNDS', color: colors.textDim, to: 'history' },
   { label: 'Leaderboard', value: '#24 TODAY', color: colors.textDim, to: 'leaderboard' },
@@ -19,6 +19,12 @@ const ROWS: { label: string; value: string; color: string; to: ScreenKey }[] = [
 export default function ProfileScreen() {
   const go = useGameStore((s) => s.go);
   const logout = useGameStore((s) => s.logout);
+  const points = useGameStore((s) => s.points);
+
+  const rows = [
+    { label: 'Rewards & redeem', value: `${money(points)} PTS`, color: colors.gold, to: 'rewards' as ScreenKey },
+    ...STATIC_ROWS,
+  ];
 
   return (
     <Screen>
@@ -35,7 +41,7 @@ export default function ProfileScreen() {
       </View>
 
       <View style={{ gap: 8, marginBottom: 20 }}>
-        {ROWS.map((r) => (
+        {rows.map((r) => (
           <Pressable key={r.label} style={styles.row} onPress={() => go(r.to)}>
             <Text style={styles.rowLabel}>{r.label}</Text>
             <Text style={[styles.rowValue, { color: r.color }]}>{r.value}</Text>

@@ -8,7 +8,6 @@ const ITEMS: { key: Screen; label: string }[] = [
   { key: 'home', label: 'HOME' },
   { key: 'wallet', label: 'WALLET' },
   { key: 'game', label: 'PLAY' },
-  { key: 'rewards', label: 'POINTS' },
   { key: 'profile', label: 'YOU' },
 ];
 
