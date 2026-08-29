@@ -26,14 +26,22 @@ export default function GameScreen() {
   const setStake = useGameStore((s) => s.setStake);
   const placeBet = useGameStore((s) => s.placeBet);
   const nextRound = useGameStore((s) => s.nextRound);
+  const myBet = useGameStore((s) => s.myBet);
+  const walletBusy = useGameStore((s) => s.walletBusy);
 
   const total = picks.length * stake;
-  const placeable = picks.length > 0 && total <= balance;
-  const betLabel =
-    picks.length === 0 ? 'PICK A NUMBER' : total > balance ? 'INSUFFICIENT BALANCE' : `PLACE BET · ₹${money(total)}`;
+  const placeable = picks.length > 0 && total <= balance && !walletBusy;
+  const betLabel = walletBusy
+    ? 'PLACING BET…'
+    : picks.length === 0
+      ? 'PICK A NUMBER'
+      : total > balance
+        ? 'INSUFFICIENT BALANCE'
+        : `PLACE BET · ₹${money(total)}`;
   const phaseLabel = t > 0 ? 'BETS OPEN' : 'DRAWING';
   const pickedLabel = picks.length ? [...picks].sort((a, b) => a - b).join(' · ') : '—';
-  const hit = picks.includes(drawn ?? -1);
+  const hit = (myBet?.picks ?? []).includes(drawn ?? -1);
+  const resultStake = myBet?.stake ?? stake;
 
   return (
     <View style={{ flex: 1 }}>
@@ -166,7 +174,7 @@ export default function GameScreen() {
           <Text style={styles.resultTitle}>{hit ? 'You hit it' : 'Not this time'}</Text>
           <Text style={styles.resultBody}>
             {hit
-              ? `₹${money(stake * payoutMultiplier)} credited to your wallet, plus 100 reward points.`
+              ? `₹${money(resultStake * payoutMultiplier)} credited to your wallet, plus 100 reward points.`
               : `Number ${drawn} was drawn. You earned 10 points for playing.`}
           </Text>
           <Pressable onPress={nextRound} style={({ pressed }) => [shadows.glowAcc, { opacity: pressed ? 0.88 : 1 }]}>

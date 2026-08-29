@@ -3,8 +3,16 @@ import { useGameStore } from '../store/useGameStore';
 
 export function useGameTimer() {
   useEffect(() => {
+    let inFlight = false;
     const id = setInterval(() => {
-      useGameStore.getState().tick();
+      if (inFlight) return;
+      inFlight = true;
+      useGameStore
+        .getState()
+        .tick()
+        .finally(() => {
+          inFlight = false;
+        });
     }, 1000);
     return () => clearInterval(id);
   }, []);

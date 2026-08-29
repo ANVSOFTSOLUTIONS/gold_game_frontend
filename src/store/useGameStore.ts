@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { api, ApiError } from '../api/client';
 
 export type Screen =
   | 'onboard'
@@ -24,7 +25,6 @@ export type BoardTab = 'today' | 'week' | 'all';
 
 export type AdminConfigKey = 'round' | 'payout' | 'minStake' | 'maxStake' | 'rake' | 'autoPay';
 
-const ROUND_SECONDS: Record<string, number> = { '30s': 30, '60s': 60, '3m': 180, '30m': 1800 };
 const parsePayoutMultiplier = (v: string) => parseFloat(v.replace('×', ''));
 
 export interface Txn {
@@ -35,16 +35,72 @@ export interface Txn {
   gold?: boolean;
 }
 
+interface MyBet {
+  roundId: number;
+  picks: number[];
+  stake: number;
+}
+
+interface WalletOut {
+  balance: number;
+  playable: number;
+  withdrawable: number;
+  points: number;
+  streak: number;
+}
+
+interface TransactionOut {
+  id: number;
+  type: string;
+  label: string;
+  amount: number;
+  positive: boolean;
+  created_at: string;
+}
+
+interface RoundOut {
+  id: number;
+  status: 'open' | 'drawn';
+  seconds_remaining: number;
+  drawn_number: number | null;
+}
+
+interface OtpResponse {
+  message: string;
+  dev_otp: string | null;
+}
+
+interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
+function formatRelative(iso: string): string {
+  const withZone = /[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`;
+  const diffMs = Date.now() - new Date(withZone).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
 interface GameState {
   screen: Screen;
   authMode: AuthMode;
   authed: boolean;
+  token: string | null;
+  authBusy: boolean;
+  authError: string | null;
 
   balance: number;
   playable: number;
   withdrawable: number;
   points: number;
   streak: number;
+  walletBusy: boolean;
 
   picks: number[];
   stake: number;
@@ -54,6 +110,8 @@ interface GameState {
   showResult: boolean;
   roundId: number;
   lastDraws: number[];
+  myBet: MyBet | null;
+  gameError: string | null;
 
   addAmount: number;
   wdAmount: number;
@@ -71,18 +129,19 @@ interface GameState {
   go: (screen: Screen) => void;
   togglePick: (n: number) => void;
   setStake: (v: number) => void;
-  placeBet: () => void;
-  tick: () => void;
+  placeBet: () => Promise<void>;
+  tick: () => Promise<void>;
   nextRound: () => void;
+  refreshWallet: () => Promise<void>;
 
   setAddAmount: (v: number) => void;
-  confirmAdd: () => void;
+  confirmAdd: () => Promise<void>;
   setWdAmount: (v: number) => void;
-  confirmWithdraw: () => void;
+  confirmWithdraw: () => Promise<void>;
   setPayMethod: (m: PayMethod) => void;
 
   toggleAuthMode: () => void;
-  doAuth: () => void;
+  submitAuth: (fullName: string, mobile: string) => Promise<void>;
   logout: () => void;
   goSignup: () => void;
   goLogin: () => void;
@@ -97,12 +156,16 @@ export const useGameStore = create<GameState>((set, get) => ({
   screen: 'onboard',
   authMode: 'login',
   authed: false,
+  token: null,
+  authBusy: false,
+  authError: null,
 
-  balance: 1240,
-  playable: 940,
-  withdrawable: 300,
-  points: 2380,
-  streak: 3,
+  balance: 0,
+  playable: 0,
+  withdrawable: 0,
+  points: 0,
+  streak: 0,
+  walletBusy: false,
 
   picks: [],
   stake: 50,
@@ -120,8 +183,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   phase: 'open',
   drawn: null,
   showResult: false,
-  roundId: 4127,
-  lastDraws: [7, 3, 9, 1, 4, 6],
+  roundId: 0,
+  lastDraws: [],
+  myBet: null,
+  gameError: null,
 
   addAmount: 500,
   wdAmount: 500,
@@ -129,13 +194,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   boardTab: 'today',
 
-  txns: [
-    { label: 'Round #4126 · won on 7', when: '2 min ago', amt: '+₹450', positive: true },
-    { label: 'Bet placed · 3 numbers', when: '3 min ago', amt: '−₹150', positive: false },
-    { label: 'Added money · UPI', when: 'Yesterday', amt: '+₹1,000', positive: true },
-    { label: 'Withdrawal · rahul@okaxis', when: '2 days ago', amt: '−₹800', positive: false },
-    { label: 'Referral bonus · Anita', when: '4 days ago', amt: '+₹50', positive: true, gold: true },
-  ],
+  txns: [],
 
   go: (screen) => {
     const { authed } = get();
@@ -143,7 +202,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ screen: 'auth' });
       return;
     }
-    set((s) => ({ screen, t: screen === 'game' ? s.roundLen : s.t }));
+    set({ screen });
   },
 
   togglePick: (n) =>
@@ -153,67 +212,171 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   setStake: (v) => set({ stake: v }),
 
-  placeBet: () => {
+  placeBet: async () => {
     const s = get();
     const total = s.picks.length * s.stake;
     const placeable = s.picks.length > 0 && total <= s.balance;
-    if (!placeable) return;
-    set({ balance: s.balance - total, playable: Math.max(0, s.playable - total) });
-  },
-
-  tick: () => {
-    const s = get();
-    if (s.screen !== 'game' || s.showResult) return;
-    if (s.t <= 1) {
-      draw(set, get);
-      return;
+    if (!placeable || !s.token || s.walletBusy) return;
+    set({ walletBusy: true, gameError: null });
+    try {
+      await api.post('/game/bets', { picks: s.picks, stake: s.stake }, s.token);
+      await get().refreshWallet();
+      set({ myBet: { roundId: s.roundId, picks: s.picks, stake: s.stake } });
+    } catch (e) {
+      set({ gameError: e instanceof ApiError ? e.message : 'Could not place bet' });
+    } finally {
+      set({ walletBusy: false });
     }
-    set({ t: s.t - 1 });
   },
 
-  nextRound: () =>
-    set((s) => ({
-      showResult: false,
-      picks: [],
-      t: s.roundLen,
-      drawn: null,
-      roundId: s.roundId + 1,
-      phase: 'open',
-    })),
+  // Polled roughly once a second by useGameTimer whenever the timer is on
+  // screen. The backend runs the actual round clock and draw — this just
+  // mirrors that shared state locally instead of simulating it.
+  tick: async () => {
+    const s = get();
+    if ((s.screen !== 'game' && s.screen !== 'home') || !s.token) return;
+    try {
+      const round = await api.get<RoundOut>('/game/current-round');
+      const prevRoundId = s.roundId;
+
+      let lastDraws = s.lastDraws;
+      if (prevRoundId !== 0 && round.id !== prevRoundId) {
+        const ld = await api.get<{ draws: number[] }>('/game/last-draws');
+        lastDraws = ld.draws;
+        const drawnNumber = lastDraws[0] ?? null;
+        const myBet = s.myBet;
+        if (myBet && myBet.roundId === prevRoundId && drawnNumber !== null) {
+          get().refreshWallet();
+          set({ drawn: drawnNumber, showResult: true });
+        }
+      }
+
+      set({
+        roundId: round.id,
+        t: round.seconds_remaining,
+        phase: round.status,
+        lastDraws,
+      });
+    } catch {
+      // Network hiccup — just skip this tick, next one will resync.
+    }
+  },
+
+  nextRound: () => set({ showResult: false, picks: [], drawn: null, myBet: null }),
+
+  refreshWallet: async () => {
+    const s = get();
+    if (!s.token) return;
+    try {
+      const wallet = await api.get<WalletOut>('/wallet', s.token);
+      const txns = await api.get<TransactionOut[]>('/wallet/transactions?limit=20', s.token);
+      set({
+        balance: wallet.balance,
+        playable: wallet.playable,
+        withdrawable: wallet.withdrawable,
+        points: wallet.points,
+        streak: wallet.streak,
+        txns: txns.map((t) => ({
+          label: t.label,
+          when: formatRelative(t.created_at),
+          amt: `${t.positive ? '+' : '−'}₹${money(t.amount)}`,
+          positive: t.positive,
+          gold: t.type === 'referral_bonus',
+        })),
+      });
+    } catch {
+      // keep last known values on failure
+    }
+  },
 
   setAddAmount: (v) => set({ addAmount: v }),
-  confirmAdd: () =>
-    set((s) => ({
-      balance: s.balance + s.addAmount,
-      playable: s.playable + s.addAmount,
-      screen: 'wallet',
-    })),
+  confirmAdd: async () => {
+    const s = get();
+    if (!s.token || s.walletBusy) return;
+    set({ walletBusy: true });
+    try {
+      await api.post('/wallet/add', { amount: s.addAmount }, s.token);
+      await get().refreshWallet();
+      set({ screen: 'wallet' });
+    } catch {
+      // TODO: surface this to the user once AddMoneyScreen has an error state
+    } finally {
+      set({ walletBusy: false });
+    }
+  },
 
   setWdAmount: (v) => set({ wdAmount: v }),
-  confirmWithdraw: () =>
-    set((s) => {
+  confirmWithdraw: async () => {
+    const s = get();
+    if (!s.token || s.walletBusy) return;
+    set({ walletBusy: true });
+    try {
       const amt = Math.min(s.wdAmount, s.withdrawable);
-      return {
-        balance: Math.max(0, s.balance - amt),
-        withdrawable: Math.max(0, s.withdrawable - s.wdAmount),
-        screen: 'wallet',
-      };
-    }),
+      await api.post('/wallet/withdraw', { amount: amt }, s.token);
+      await get().refreshWallet();
+      set({ screen: 'wallet' });
+    } catch {
+      // TODO: surface this to the user once WithdrawScreen has an error state
+    } finally {
+      set({ walletBusy: false });
+    }
+  },
 
   setPayMethod: (m) => set({ payMethod: m }),
 
-  toggleAuthMode: () => set((s) => ({ authMode: s.authMode === 'login' ? 'signup' : 'login' })),
-  doAuth: () => set((s) => ({ authed: true, screen: 'game', t: s.roundLen })),
-  logout: () => set({ authed: false, screen: 'onboard', authMode: 'login' }),
-  goSignup: () => set({ screen: 'auth', authMode: 'signup' }),
-  goLogin: () => set({ screen: 'auth', authMode: 'login' }),
+  toggleAuthMode: () => set((s) => ({ authMode: s.authMode === 'login' ? 'signup' : 'login', authError: null })),
+
+  submitAuth: async (fullName, mobile) => {
+    const s = get();
+    if (s.authBusy) return;
+    set({ authBusy: true, authError: null });
+    try {
+      const otpResp =
+        s.authMode === 'signup'
+          ? await api.post<OtpResponse>('/auth/signup', { full_name: fullName, mobile })
+          : await api.post<OtpResponse>('/auth/request-otp', { mobile });
+
+      if (!otpResp.dev_otp) {
+        throw new Error(
+          'The backend sent a real OTP by SMS, but this app has no OTP entry screen yet. ' +
+            'Sign-in only works while the backend runs with DEBUG=true.'
+        );
+      }
+
+      const tokenResp = await api.post<TokenResponse>('/auth/verify-otp', { mobile, code: otpResp.dev_otp });
+      set({ token: tokenResp.access_token, authed: true, screen: 'game', authBusy: false });
+      await get().refreshWallet();
+    } catch (e) {
+      set({
+        authBusy: false,
+        authError: e instanceof Error ? e.message : 'Something went wrong, please try again',
+      });
+    }
+  },
+
+  logout: () =>
+    set({
+      authed: false,
+      token: null,
+      screen: 'onboard',
+      authMode: 'login',
+      balance: 0,
+      playable: 0,
+      withdrawable: 0,
+      points: 0,
+      streak: 0,
+      txns: [],
+      myBet: null,
+      picks: [],
+    }),
+  goSignup: () => set({ screen: 'auth', authMode: 'signup', authError: null }),
+  goLogin: () => set({ screen: 'auth', authMode: 'login', authError: null }),
 
   setBoardTab: (t) => set({ boardTab: t }),
 
   setConfig: (key, value) =>
     set((s) => {
       const cfg = { ...s.cfg, [key]: value };
-      if (key === 'round') return { cfg, roundLen: ROUND_SECONDS[value] ?? s.roundLen };
       if (key === 'payout') return { cfg, payoutMultiplier: parsePayoutMultiplier(value) };
       return { cfg };
     }),
@@ -223,22 +386,5 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((s) => ({ points: Math.max(0, s.points - cost) }));
   },
 }));
-
-function draw(set: (partial: Partial<GameState>) => void, get: () => GameState) {
-  const s = get();
-  const n = 1 + Math.floor(Math.random() * 9);
-  const hit = s.picks.includes(n);
-  const win = hit ? s.stake * s.payoutMultiplier : 0;
-  set({
-    drawn: n,
-    showResult: true,
-    phase: 'drawn',
-    balance: s.balance + win,
-    withdrawable: s.withdrawable + win,
-    points: s.points + 10 + (hit ? 100 : 0),
-    streak: hit ? s.streak + 1 : 0,
-    lastDraws: [n, ...s.lastDraws].slice(0, 6),
-  });
-}
 
 export const money = (n: number) => n.toLocaleString('en-IN');

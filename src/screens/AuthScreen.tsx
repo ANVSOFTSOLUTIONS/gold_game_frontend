@@ -10,12 +10,16 @@ export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const authMode = useGameStore((s) => s.authMode);
   const toggleAuthMode = useGameStore((s) => s.toggleAuthMode);
-  const doAuth = useGameStore((s) => s.doAuth);
+  const submitAuth = useGameStore((s) => s.submitAuth);
+  const authBusy = useGameStore((s) => s.authBusy);
+  const authError = useGameStore((s) => s.authError);
 
   const isSignup = authMode === 'signup';
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [agree, setAgree] = useState(true);
+
+  const canSubmit = mobile.length >= 10 && (!isSignup || (name.trim().length > 0 && agree));
 
   return (
     <LinearGradient colors={['#152437', colors.bg]} style={styles.root} locations={[0, 0.7]}>
@@ -71,9 +75,12 @@ export default function AuthScreen() {
           </Pressable>
         )}
 
+        {authError && <Text style={styles.errorText}>{authError}</Text>}
+
         <PrimaryButton
-          label={isSignup ? 'CREATE ACCOUNT' : 'LOG IN'}
-          onPress={doAuth}
+          label={authBusy ? 'PLEASE WAIT…' : isSignup ? 'CREATE ACCOUNT' : 'LOG IN'}
+          onPress={() => submitAuth(name.trim(), mobile)}
+          disabled={authBusy || !canSubmit}
           style={{ marginBottom: 16 }}
         />
         <Text style={styles.switchLink} onPress={toggleAuthMode}>
@@ -135,4 +142,5 @@ const styles = StyleSheet.create({
   checkMark: { fontFamily: fonts.monoBold, fontSize: 11, color: colors.accDeep },
   termsText: { flex: 1, fontFamily: fonts.displayReg, fontSize: 12, lineHeight: 17, color: colors.muted },
   switchLink: { fontFamily: fonts.displayMed, fontSize: 13, color: colors.muted, textAlign: 'center' },
+  errorText: { fontFamily: fonts.displayReg, fontSize: 12.5, lineHeight: 18, color: colors.red, marginBottom: 14 },
 });
