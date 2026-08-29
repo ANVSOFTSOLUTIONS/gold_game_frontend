@@ -1,10 +1,10 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import { colors, fonts } from '../theme';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { colors, fonts, shadows } from '../theme';
 
-const SIZE = 126;
-const STROKE = 10;
+const SIZE = 132;
+const STROKE = 11;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRC = 2 * Math.PI * RADIUS;
 
@@ -12,10 +12,17 @@ export default function TimerRing({ t, phaseLabel }: { t: number; phaseLabel: st
   const progress = Math.max(0, Math.min(1, t / 60));
   const dashOffset = CIRC * (1 - progress);
   const clock = `0:${String(t).padStart(2, '0')}`;
+  const urgent = t > 0 && t <= 10;
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, urgent ? shadows.glowRed : shadows.glowAcc]}>
       <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
+        <Defs>
+          <LinearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor={urgent ? colors.red : colors.acc} />
+            <Stop offset="100%" stopColor={urgent ? '#FF9466' : colors.accHover} />
+          </LinearGradient>
+        </Defs>
         <Circle
           cx={SIZE / 2}
           cy={SIZE / 2}
@@ -28,7 +35,7 @@ export default function TimerRing({ t, phaseLabel }: { t: number; phaseLabel: st
           cx={SIZE / 2}
           cy={SIZE / 2}
           r={RADIUS}
-          stroke={colors.acc}
+          stroke="url(#ring)"
           strokeWidth={STROKE}
           fill="none"
           strokeDasharray={`${CIRC} ${CIRC}`}
@@ -39,23 +46,23 @@ export default function TimerRing({ t, phaseLabel }: { t: number; phaseLabel: st
         />
       </Svg>
       <View style={styles.inner}>
-        <Text style={styles.clock}>{clock}</Text>
-        <Text style={styles.phase}>{phaseLabel}</Text>
+        <Text style={[styles.clock, urgent && { color: colors.red }]}>{clock}</Text>
+        <Text style={[styles.phase, urgent && { color: colors.red }]}>{phaseLabel}</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' },
+  wrap: { width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center', borderRadius: SIZE / 2 },
   inner: {
-    width: SIZE - 20,
-    height: SIZE - 20,
-    borderRadius: (SIZE - 20) / 2,
+    width: SIZE - 22,
+    height: SIZE - 22,
+    borderRadius: (SIZE - 22) / 2,
     backgroundColor: colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  clock: { fontFamily: fonts.monoBold, fontSize: 30, letterSpacing: -1, color: colors.text },
+  clock: { fontFamily: fonts.monoBold, fontSize: 32, letterSpacing: -1, color: colors.text },
   phase: { fontFamily: fonts.monoSemi, fontSize: 9, letterSpacing: 1.8, color: colors.muted, marginTop: 2 },
 });

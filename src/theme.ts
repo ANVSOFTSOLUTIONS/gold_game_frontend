@@ -44,3 +44,20 @@ export const radii = {
 export const spacing = {
   screenH: 22,
 };
+
+export const shadows = {
+  glowAcc: {
+    shadowColor: '#00E5A0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  glowRed: {
+    shadowColor: '#FF5A36',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+};

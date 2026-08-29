@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, fonts, radii } from '../theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, fonts, radii, shadows } from '../theme';
 import { money, useGameStore } from '../store/useGameStore';
 import Screen from '../components/Screen';
 import BackButton from '../components/BackButton';
@@ -55,12 +56,24 @@ export default function GameScreen() {
               <Pressable
                 key={n}
                 onPress={() => togglePick(n)}
-                style={[styles.cell, on ? styles.cellOn : styles.cellOff]}
+                style={({ pressed }) => [styles.cell, on && shadows.glowAcc, { opacity: pressed ? 0.85 : 1 }]}
               >
-                <Text style={[styles.cellNum, { color: on ? colors.acc : colors.text }]}>{n}</Text>
-                <Text style={[styles.cellSub, { color: on ? 'rgba(0,229,160,0.75)' : colors.muted }]}>
-                  {on ? 'PICKED' : `${payoutMultiplier}× PAY`}
-                </Text>
+                {on ? (
+                  <LinearGradient
+                    colors={[colors.acc, colors.accHover]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[styles.cellInner, styles.cellOn]}
+                  >
+                    <Text style={[styles.cellNum, { color: colors.accDeep }]}>{n}</Text>
+                    <Text style={[styles.cellSub, { color: 'rgba(6,37,26,0.72)' }]}>PICKED</Text>
+                  </LinearGradient>
+                ) : (
+                  <View style={[styles.cellInner, styles.cellOff]}>
+                    <Text style={[styles.cellNum, { color: colors.text }]}>{n}</Text>
+                    <Text style={[styles.cellSub, { color: colors.muted }]}>{payoutMultiplier}× PAY</Text>
+                  </View>
+                )}
               </Pressable>
             );
           })}
@@ -74,9 +87,22 @@ export default function GameScreen() {
               <Pressable
                 key={v}
                 onPress={() => setStake(v)}
-                style={[styles.stakeChip, { backgroundColor: active ? 'rgba(0,229,160,0.14)' : colors.card, borderColor: active ? colors.acc : colors.border }]}
+                style={({ pressed }) => [styles.stakeChip, active && shadows.glowAcc, { opacity: pressed ? 0.85 : 1 }]}
               >
-                <Text style={[styles.stakeChipText, { color: active ? colors.acc : colors.textDim }]}>₹{v}</Text>
+                {active ? (
+                  <LinearGradient
+                    colors={[colors.acc, colors.accHover]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.stakeChipInner}
+                  >
+                    <Text style={[styles.stakeChipText, { color: colors.accDeep }]}>₹{v}</Text>
+                  </LinearGradient>
+                ) : (
+                  <View style={[styles.stakeChipInner, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
+                    <Text style={[styles.stakeChipText, { color: colors.textDim }]}>₹{v}</Text>
+                  </View>
+                )}
               </Pressable>
             );
           })}
@@ -101,9 +127,22 @@ export default function GameScreen() {
         <Pressable
           onPress={placeBet}
           disabled={!placeable}
-          style={[styles.betBtn, { backgroundColor: placeable ? colors.acc : colors.card, borderColor: placeable ? colors.acc : colors.border }]}
+          style={({ pressed }) => [styles.betBtn, placeable && shadows.glowAcc, { opacity: pressed ? 0.88 : 1 }]}
         >
-          <Text style={[styles.betBtnText, { color: placeable ? colors.accDeep : colors.muted }]}>{betLabel}</Text>
+          {placeable ? (
+            <LinearGradient
+              colors={[colors.acc, colors.accHover]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.betBtnInner}
+            >
+              <Text style={[styles.betBtnText, { color: colors.accDeep }]}>{betLabel}</Text>
+            </LinearGradient>
+          ) : (
+            <View style={[styles.betBtnInner, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}>
+              <Text style={[styles.betBtnText, { color: colors.muted }]}>{betLabel}</Text>
+            </View>
+          )}
         </Pressable>
 
         <View style={{ marginTop: 24 }}>
@@ -120,7 +159,7 @@ export default function GameScreen() {
 
       {showResult && (
         <View style={styles.overlay}>
-          <View style={[styles.resultBadge, { backgroundColor: hit ? 'rgba(0,229,160,0.16)' : colors.card, borderColor: hit ? colors.acc : colors.border }]}>
+          <View style={[styles.resultBadge, hit && shadows.glowAcc, { backgroundColor: hit ? 'rgba(0,229,160,0.16)' : colors.card, borderColor: hit ? colors.acc : colors.border }]}>
             <Text style={[styles.resultNum, { color: hit ? colors.acc : colors.text }]}>{drawn}</Text>
           </View>
           <Text style={styles.resultTitle}>{hit ? 'You hit it' : 'Not this time'}</Text>
@@ -129,8 +168,10 @@ export default function GameScreen() {
               ? `₹${money(stake * payoutMultiplier)} credited to your wallet, plus 100 reward points.`
               : `Number ${drawn} was drawn. You earned 10 points for playing.`}
           </Text>
-          <Pressable style={styles.nextBtn} onPress={nextRound}>
-            <Text style={styles.nextBtnText}>NEXT ROUND</Text>
+          <Pressable onPress={nextRound} style={({ pressed }) => [shadows.glowAcc, { opacity: pressed ? 0.88 : 1 }]}>
+            <LinearGradient colors={[colors.acc, colors.accHover]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.nextBtn}>
+              <Text style={styles.nextBtnText}>NEXT ROUND</Text>
+            </LinearGradient>
           </Pressable>
         </View>
       )}
@@ -147,14 +188,16 @@ const styles = StyleSheet.create({
   timerWrap: { alignItems: 'center', marginBottom: 22 },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 11, marginBottom: 22 },
-  cell: { width: '31%', aspectRatio: 1, borderRadius: radii.xl, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
-  cellOn: { backgroundColor: 'rgba(0,229,160,0.14)', borderColor: colors.acc },
+  cell: { width: '31%', aspectRatio: 1, borderRadius: radii.xl },
+  cellInner: { flex: 1, borderRadius: radii.xl, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+  cellOn: { borderColor: 'rgba(255,255,255,0.28)' },
   cellOff: { backgroundColor: colors.card, borderColor: colors.border },
   cellNum: { fontFamily: fonts.monoBold, fontSize: 34 },
   cellSub: { fontFamily: fonts.monoSemi, fontSize: 9, letterSpacing: 1.2, marginTop: 6 },
 
   stakeRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
-  stakeChip: { flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 14, borderWidth: 1 },
+  stakeChip: { flex: 1, borderRadius: 14 },
+  stakeChipInner: { alignItems: 'center', paddingVertical: 12, borderRadius: 14 },
   stakeChipText: { fontFamily: fonts.monoSemi, fontSize: 14 },
 
   summaryCard: { borderRadius: radii.lg, padding: 16, backgroundColor: colors.card2, borderWidth: 1, borderColor: colors.divider, marginBottom: 16 },
@@ -164,7 +207,8 @@ const styles = StyleSheet.create({
   summaryDivider: { height: 1, backgroundColor: colors.divider, marginVertical: 2, marginBottom: 12 },
   summaryWin: { fontFamily: fonts.monoBold, fontSize: 15, color: colors.acc },
 
-  betBtn: { alignItems: 'center', paddingVertical: 17, borderRadius: radii.lg, borderWidth: 1 },
+  betBtn: { borderRadius: radii.lg },
+  betBtnInner: { alignItems: 'center', paddingVertical: 17, borderRadius: radii.lg },
   betBtnText: { fontFamily: fonts.display, fontSize: 15 },
 
   lastDrawsRow: { flexDirection: 'row', gap: 8 },
@@ -182,6 +226,6 @@ const styles = StyleSheet.create({
   resultNum: { fontFamily: fonts.monoBold, fontSize: 58 },
   resultTitle: { fontFamily: fonts.display, fontSize: 24, letterSpacing: -0.5, color: colors.text, marginTop: 26 },
   resultBody: { fontFamily: fonts.displayReg, fontSize: 14, lineHeight: 21, color: colors.muted, marginTop: 8, textAlign: 'center', maxWidth: 250 },
-  nextBtn: { marginTop: 30, paddingVertical: 15, paddingHorizontal: 40, borderRadius: radii.pill, backgroundColor: colors.acc },
+  nextBtn: { marginTop: 30, paddingVertical: 15, paddingHorizontal: 40, borderRadius: radii.pill },
   nextBtnText: { fontFamily: fonts.display, fontSize: 14, color: colors.accDeep },
 });
