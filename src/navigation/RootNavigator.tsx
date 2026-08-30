@@ -20,6 +20,7 @@ import KycScreen from '../screens/KycScreen';
 import NotifScreen from '../screens/NotifScreen';
 import SupportScreen from '../screens/SupportScreen';
 import AdminScreen from '../screens/AdminScreen';
+import LoanScreen from '../screens/LoanScreen';
 
 const SCREEN_MAP: Record<Screen, React.ComponentType> = {
   onboard: OnboardScreen,
@@ -38,6 +39,7 @@ const SCREEN_MAP: Record<Screen, React.ComponentType> = {
   notif: NotifScreen,
   support: SupportScreen,
   admin: AdminScreen,
+  loans: LoanScreen,
 };
 
 const BACK_MAP: Partial<Record<Screen, Screen>> = {
@@ -50,6 +52,7 @@ const BACK_MAP: Partial<Record<Screen, Screen>> = {
   referral: 'rewards',
   auth: 'onboard',
   admin: 'profile',
+  loans: 'profile',
 };
 
 export default function RootNavigator() {

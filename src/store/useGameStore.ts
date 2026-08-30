@@ -17,7 +17,8 @@ export type Screen =
   | 'kyc'
   | 'notif'
   | 'support'
-  | 'admin';
+  | 'admin'
+  | 'loans';
 
 export type AuthMode = 'login' | 'signup';
 export type PayMethod = 'upi' | 'card' | 'net';
@@ -94,6 +95,9 @@ interface GameState {
   token: string | null;
   authBusy: boolean;
   authError: string | null;
+  authStage: 'form' | 'otp';
+  pendingMobile: string;
+  devOtpHint: string | null;
 
   balance: number;
   playable: number;
@@ -121,6 +125,13 @@ interface GameState {
 
   txns: Txn[];
 
+  // Loans is a standalone demo ledger — not yet wired to the real backend
+  // wallet, so it deliberately never touches `balance`/`playable` directly.
+  loanBalance: number;
+  loanLimit: number;
+  takeLoan: (amount: number) => void;
+  repayLoan: (amount: number) => void;
+
   roundLen: number;
   payoutMultiplier: number;
   cfg: Record<AdminConfigKey, string>;
@@ -141,7 +152,10 @@ interface GameState {
   setPayMethod: (m: PayMethod) => void;
 
   toggleAuthMode: () => void;
-  submitAuth: (fullName: string, mobile: string) => Promise<void>;
+  requestAuthOtp: (fullName: string, mobile: string) => Promise<void>;
+  verifyAuthOtp: (code: string) => Promise<void>;
+  resendAuthOtp: () => Promise<void>;
+  cancelOtp: () => void;
   logout: () => void;
   goSignup: () => void;
   goLogin: () => void;
@@ -159,6 +173,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   token: null,
   authBusy: false,
   authError: null,
+  authStage: 'form',
+  pendingMobile: '',
+  devOtpHint: null,
 
   balance: 0,
   playable: 0,
@@ -195,6 +212,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   boardTab: 'today',
 
   txns: [],
+
+  loanBalance: 0,
+  loanLimit: 5000,
 
   go: (screen) => {
     const { authed } = get();
@@ -324,9 +344,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   setPayMethod: (m) => set({ payMethod: m }),
 
-  toggleAuthMode: () => set((s) => ({ authMode: s.authMode === 'login' ? 'signup' : 'login', authError: null })),
+  toggleAuthMode: () =>
+    set((s) => ({
+      authMode: s.authMode === 'login' ? 'signup' : 'login',
+      authError: null,
+      authStage: 'form',
+    })),
 
-  submitAuth: async (fullName, mobile) => {
+  requestAuthOtp: async (fullName, mobile) => {
     const s = get();
     if (s.authBusy) return;
     set({ authBusy: true, authError: null });
@@ -335,17 +360,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         s.authMode === 'signup'
           ? await api.post<OtpResponse>('/auth/signup', { full_name: fullName, mobile })
           : await api.post<OtpResponse>('/auth/request-otp', { mobile });
-
-      if (!otpResp.dev_otp) {
-        throw new Error(
-          'The backend sent a real OTP by SMS, but this app has no OTP entry screen yet. ' +
-            'Sign-in only works while the backend runs with DEBUG=true.'
-        );
-      }
-
-      const tokenResp = await api.post<TokenResponse>('/auth/verify-otp', { mobile, code: otpResp.dev_otp });
-      set({ token: tokenResp.access_token, authed: true, screen: 'game', authBusy: false });
-      await get().refreshWallet();
+      set({
+        authBusy: false,
+        authStage: 'otp',
+        pendingMobile: mobile,
+        devOtpHint: otpResp.dev_otp,
+      });
     } catch (e) {
       set({
         authBusy: false,
@@ -354,10 +374,56 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
+  verifyAuthOtp: async (code) => {
+    const s = get();
+    if (s.authBusy) return;
+    set({ authBusy: true, authError: null });
+    try {
+      const tokenResp = await api.post<TokenResponse>('/auth/verify-otp', { mobile: s.pendingMobile, code });
+      set({
+        token: tokenResp.access_token,
+        authed: true,
+        screen: 'game',
+        authBusy: false,
+        authStage: 'form',
+        devOtpHint: null,
+      });
+      await get().refreshWallet();
+    } catch (e) {
+      set({
+        authBusy: false,
+        authError: e instanceof Error ? e.message : 'Incorrect code, please try again',
+      });
+    }
+  },
+
+  resendAuthOtp: async () => {
+    const s = get();
+    if (s.authBusy || !s.pendingMobile) return;
+    set({ authBusy: true, authError: null });
+    try {
+      const otpResp =
+        s.authMode === 'signup'
+          ? await api.post<OtpResponse>('/auth/signup', { full_name: '', mobile: s.pendingMobile })
+          : await api.post<OtpResponse>('/auth/request-otp', { mobile: s.pendingMobile });
+      set({ authBusy: false, devOtpHint: otpResp.dev_otp });
+    } catch (e) {
+      set({
+        authBusy: false,
+        authError: e instanceof Error ? e.message : 'Could not resend the code',
+      });
+    }
+  },
+
+  cancelOtp: () => set({ authStage: 'form', authError: null, devOtpHint: null }),
+
   logout: () =>
     set({
       authed: false,
       token: null,
+      authStage: 'form',
+      pendingMobile: '',
+      devOtpHint: null,
       screen: 'onboard',
       authMode: 'login',
       balance: 0,
@@ -369,8 +435,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       myBet: null,
       picks: [],
     }),
-  goSignup: () => set({ screen: 'auth', authMode: 'signup', authError: null }),
-  goLogin: () => set({ screen: 'auth', authMode: 'login', authError: null }),
+  goSignup: () => set({ screen: 'auth', authMode: 'signup', authError: null, authStage: 'form' }),
+  goLogin: () => set({ screen: 'auth', authMode: 'login', authError: null, authStage: 'form' }),
 
   setBoardTab: (t) => set({ boardTab: t }),
 
@@ -385,6 +451,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!ok) return;
     set((s) => ({ points: Math.max(0, s.points - cost) }));
   },
+
+  takeLoan: (amount) =>
+    set((s) => {
+      const room = s.loanLimit - s.loanBalance;
+      const amt = Math.min(amount, room);
+      if (amt <= 0) return s;
+      return { loanBalance: s.loanBalance + amt };
+    }),
+  repayLoan: (amount) =>
+    set((s) => ({ loanBalance: Math.max(0, s.loanBalance - amount) })),
 }));
 
 export const money = (n: number) => n.toLocaleString('en-IN');

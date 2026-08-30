@@ -9,7 +9,7 @@ const STATIC_ROWS: { label: string; value: string; color: string; to: ScreenKey 
   { label: 'Verify identity (KYC)', value: 'PENDING', color: colors.gold, to: 'kyc' },
   { label: 'My results', value: '318 ROUNDS', color: colors.textDim, to: 'history' },
   { label: 'Leaderboard', value: '#24 TODAY', color: colors.textDim, to: 'leaderboard' },
-  { label: 'Refer & earn', value: '₹250 EARNED', color: colors.acc, to: 'referral' },
+  { label: 'Investors', value: '₹250 EARNED', color: colors.acc, to: 'referral' },
   { label: 'Notifications', value: '2 NEW', color: colors.textDim, to: 'notif' },
   { label: 'Help & limits', value: 'OPEN', color: colors.textDim, to: 'support' },
   { label: 'Lifetime winnings', value: '₹14,220', color: colors.acc, to: 'history' },
@@ -20,9 +20,16 @@ export default function ProfileScreen() {
   const go = useGameStore((s) => s.go);
   const logout = useGameStore((s) => s.logout);
   const points = useGameStore((s) => s.points);
+  const loanBalance = useGameStore((s) => s.loanBalance);
 
   const rows = [
     { label: 'Rewards & redeem', value: `${money(points)} PTS`, color: colors.gold, to: 'rewards' as ScreenKey },
+    {
+      label: 'Loans',
+      value: loanBalance > 0 ? `₹${money(loanBalance)} OWED` : 'AVAILABLE',
+      color: loanBalance > 0 ? colors.red : colors.textDim,
+      to: 'loans' as ScreenKey,
+    },
     ...STATIC_ROWS,
   ];
 

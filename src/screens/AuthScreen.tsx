@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,16 +10,87 @@ export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const authMode = useGameStore((s) => s.authMode);
   const toggleAuthMode = useGameStore((s) => s.toggleAuthMode);
-  const submitAuth = useGameStore((s) => s.submitAuth);
+  const authStage = useGameStore((s) => s.authStage);
   const authBusy = useGameStore((s) => s.authBusy);
   const authError = useGameStore((s) => s.authError);
+  const pendingMobile = useGameStore((s) => s.pendingMobile);
+  const devOtpHint = useGameStore((s) => s.devOtpHint);
+  const requestAuthOtp = useGameStore((s) => s.requestAuthOtp);
+  const verifyAuthOtp = useGameStore((s) => s.verifyAuthOtp);
+  const resendAuthOtp = useGameStore((s) => s.resendAuthOtp);
+  const cancelOtp = useGameStore((s) => s.cancelOtp);
 
   const isSignup = authMode === 'signup';
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [agree, setAgree] = useState(true);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const otpRefs = useRef<Array<TextInput | null>>([]);
 
   const canSubmit = mobile.length >= 10 && (!isSignup || (name.trim().length > 0 && agree));
+  const otpCode = otp.join('');
+  const canVerify = otpCode.length === otp.length;
+
+  const setDigit = (i: number, v: string) => {
+    const clean = v.replace(/[^0-9]/g, '').slice(-1);
+    const next = [...otp];
+    next[i] = clean;
+    setOtp(next);
+    if (clean && i < otp.length - 1) otpRefs.current[i + 1]?.focus();
+  };
+
+  if (authStage === 'otp') {
+    return (
+      <LinearGradient colors={['#152437', colors.bg]} style={styles.root} locations={[0, 0.7]}>
+        <View style={{ paddingTop: insets.top + 34, paddingHorizontal: 26, paddingBottom: 40 }}>
+          <Pressable onPress={cancelOtp} hitSlop={10} style={{ marginBottom: 22 }}>
+            <Text style={styles.backLink}>← Back</Text>
+          </Pressable>
+
+          <View style={styles.logo}>
+            <Text style={styles.logoText}>9</Text>
+          </View>
+
+          <Text style={styles.title}>Enter the code</Text>
+          <Text style={styles.sub}>We sent a 6-digit code to +91 {pendingMobile}.</Text>
+
+          {devOtpHint && (
+            <Text style={styles.devHint}>Dev mode — no SMS provider yet, your code is {devOtpHint}</Text>
+          )}
+
+          <View style={{ marginBottom: 20 }}>
+            <Text style={styles.fieldLabel}>OTP</Text>
+            <View style={styles.otpRow}>
+              {otp.map((v, i) => (
+                <TextInput
+                  key={i}
+                  ref={(r) => {
+                    otpRefs.current[i] = r;
+                  }}
+                  value={v}
+                  onChangeText={(t) => setDigit(i, t)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  style={[styles.otpBox, { borderColor: v ? 'rgba(232,132,92,0.45)' : colors.border }]}
+                />
+              ))}
+            </View>
+            <Text style={styles.resend} onPress={resendAuthOtp}>
+              Didn't get it? Resend code
+            </Text>
+          </View>
+
+          {authError && <Text style={styles.errorText}>{authError}</Text>}
+
+          <PrimaryButton
+            label={authBusy ? 'VERIFYING…' : 'VERIFY & CONTINUE'}
+            onPress={() => verifyAuthOtp(otpCode)}
+            disabled={authBusy || !canVerify}
+          />
+        </View>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={['#152437', colors.bg]} style={styles.root} locations={[0, 0.7]}>
@@ -32,7 +103,7 @@ export default function AuthScreen() {
         <Text style={styles.sub}>
           {isSignup
             ? '18+ only. Takes about thirty seconds.'
-            : 'Enter your mobile number to log in.'}
+            : 'Enter your mobile number and we will text you a code.'}
         </Text>
 
         {isSignup && (
@@ -78,8 +149,8 @@ export default function AuthScreen() {
         {authError && <Text style={styles.errorText}>{authError}</Text>}
 
         <PrimaryButton
-          label={authBusy ? 'PLEASE WAIT…' : isSignup ? 'CREATE ACCOUNT' : 'LOG IN'}
-          onPress={() => submitAuth(name.trim(), mobile)}
+          label={authBusy ? 'SENDING CODE…' : isSignup ? 'CREATE ACCOUNT' : 'SEND CODE'}
+          onPress={() => requestAuthOtp(name.trim(), mobile)}
           disabled={authBusy || !canSubmit}
           style={{ marginBottom: 16 }}
         />
@@ -93,6 +164,7 @@ export default function AuthScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  backLink: { fontFamily: fonts.displayMed, fontSize: 13, color: colors.muted },
   logo: {
     width: 48,
     height: 48,
@@ -105,6 +177,19 @@ const styles = StyleSheet.create({
   logoText: { fontFamily: fonts.monoBold, fontSize: 24, color: colors.accDeep },
   title: { fontFamily: fonts.display, fontSize: 30, lineHeight: 33, letterSpacing: -1, color: colors.text, marginBottom: 8 },
   sub: { fontFamily: fonts.displayReg, fontSize: 14, lineHeight: 21, color: colors.muted, marginBottom: 30 },
+  devHint: {
+    fontFamily: fonts.mono,
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: colors.gold,
+    backgroundColor: 'rgba(232,177,76,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(232,177,76,0.25)',
+    borderRadius: radii.sm,
+    padding: 10,
+    marginTop: -14,
+    marginBottom: 20,
+  },
   fieldLabel: { fontFamily: fonts.monoSemi, fontSize: 10, letterSpacing: 1.8, color: colors.muted, marginBottom: 8 },
   textField: {
     padding: 16,
@@ -129,6 +214,19 @@ const styles = StyleSheet.create({
   mobilePrefix: { fontFamily: fonts.monoSemi, fontSize: 15, color: colors.muted },
   mobileDivider: { width: 1, height: 18, backgroundColor: colors.border },
   mobileInput: { flex: 1, fontFamily: fonts.monoSemi, fontSize: 15, letterSpacing: 1, color: colors.text, padding: 0 },
+  otpRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  otpBox: {
+    width: 46,
+    height: 54,
+    borderRadius: radii.sm,
+    backgroundColor: colors.card2,
+    borderWidth: 1,
+    textAlign: 'center',
+    fontFamily: fonts.monoBold,
+    fontSize: 20,
+    color: colors.text,
+  },
+  resend: { fontFamily: fonts.mono, fontSize: 11, color: colors.acc, marginTop: 10 },
   termsRow: { flexDirection: 'row', gap: 11, alignItems: 'flex-start', marginBottom: 20 },
   checkbox: {
     width: 18,

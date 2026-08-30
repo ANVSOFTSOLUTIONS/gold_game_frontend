@@ -1,13 +1,7 @@
-import { Platform } from 'react-native';
-
-// Android emulators can't reach the host machine via `localhost` — they need
-// the special 10.0.2.2 alias. Physical devices need your machine's LAN IP
-// instead (change this to that IP, or to the deployed Render URL, when
-// you're not running the backend on the same machine as the Metro bundler).
-export const API_BASE_URL = Platform.select({
-  android: 'http://10.0.2.2:8000',
-  default: 'http://localhost:8000',
-}) as string;
+// Deployed backend on Render — reachable from any device (emulator, physical
+// phone, web), unlike localhost. Swap this back to a Platform.select() over
+// 10.0.2.2 / localhost if you want to point at a local backend instead.
+export const API_BASE_URL = 'https://gold-game-backend.onrender.com';
 
 export class ApiError extends Error {
   status: number;

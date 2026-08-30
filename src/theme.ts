@@ -32,6 +32,20 @@ export const fonts = {
   monoBold: 'JetBrainsMono_700Bold',
 };
 
+// One distinct color pair per pick (1-9) — [base, light] — used to tint the
+// number grid so each pick reads as its own color, not just on/off.
+export const numberColors: Record<number, [string, string]> = {
+  1: ['#FF6B6B', '#FF9E9E'],
+  2: ['#FFA94D', '#FFCB8A'],
+  3: ['#FFD43B', '#FFE382'],
+  4: ['#69DB7C', '#9AE8A8'],
+  5: ['#38D9A9', '#7CE9C8'],
+  6: ['#4DABF7', '#8BC8FA'],
+  7: ['#748FFC', '#A6B7FD'],
+  8: ['#DA77F2', '#E7A9F7'],
+  9: ['#F783AC', '#FAAEC7'],
+};
+
 export const radii = {
   sm: 11,
   md: 15,

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, fonts, radii, shadows } from '../theme';
+import { colors, fonts, numberColors, radii, shadows } from '../theme';
 import { money, useGameStore } from '../store/useGameStore';
 import Screen from '../components/Screen';
 import BackButton from '../components/BackButton';
@@ -43,6 +43,14 @@ export default function GameScreen() {
   const hit = (myBet?.picks ?? []).includes(drawn ?? -1);
   const resultStake = myBet?.stake ?? stake;
 
+  // A win stays celebrated on screen for 30s before auto-advancing, unless
+  // the player taps NEXT ROUND sooner.
+  useEffect(() => {
+    if (!showResult || !hit) return;
+    const id = setTimeout(() => nextRound(), 30000);
+    return () => clearTimeout(id);
+  }, [showResult, hit, nextRound]);
+
   return (
     <View style={{ flex: 1 }}>
       <Screen>
@@ -61,25 +69,27 @@ export default function GameScreen() {
         <View style={styles.grid}>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
             const on = picks.includes(n);
+            const [base, light] = numberColors[n];
+            const glow = { shadowColor: base, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 };
             return (
               <Pressable
                 key={n}
                 onPress={() => togglePick(n)}
-                style={({ pressed }) => [styles.cell, on && shadows.glowAcc, { opacity: pressed ? 0.85 : 1 }]}
+                style={({ pressed }) => [styles.cell, on && glow, { opacity: pressed ? 0.85 : 1 }]}
               >
                 {on ? (
                   <LinearGradient
-                    colors={[colors.acc, colors.accHover]}
+                    colors={[base, light]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={[styles.cellInner, styles.cellOn]}
                   >
-                    <Text style={[styles.cellNum, { color: colors.accDeep }]}>{n}</Text>
-                    <Text style={[styles.cellSub, { color: 'rgba(6,37,26,0.72)' }]}>PICKED</Text>
+                    <Text style={[styles.cellNum, { color: colors.bg }]}>{n}</Text>
+                    <Text style={[styles.cellSub, { color: 'rgba(11,12,16,0.65)' }]}>{payoutMultiplier}× PICKED</Text>
                   </LinearGradient>
                 ) : (
-                  <View style={[styles.cellInner, styles.cellOff]}>
-                    <Text style={[styles.cellNum, { color: colors.text }]}>{n}</Text>
+                  <View style={[styles.cellInner, styles.cellOff, { borderColor: `${base}55` }]}>
+                    <Text style={[styles.cellNum, { color: base }]}>{n}</Text>
                     <Text style={[styles.cellSub, { color: colors.muted }]}>{payoutMultiplier}× PAY</Text>
                   </View>
                 )}
@@ -168,6 +178,7 @@ export default function GameScreen() {
 
       {showResult && (
         <View style={styles.overlay}>
+          {hit && <Text style={styles.crown}>👑</Text>}
           <View style={[styles.resultBadge, hit && shadows.glowAcc, { backgroundColor: hit ? 'rgba(232,132,92,0.16)' : colors.card, borderColor: hit ? colors.acc : colors.border }]}>
             <Text style={[styles.resultNum, { color: hit ? colors.acc : colors.text }]}>{drawn}</Text>
           </View>
@@ -231,6 +242,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 32,
   },
+  crown: { fontSize: 56, marginBottom: 4 },
   resultBadge: { width: 120, height: 120, borderRadius: 34, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
   resultNum: { fontFamily: fonts.monoBold, fontSize: 58 },
   resultTitle: { fontFamily: fonts.display, fontSize: 24, letterSpacing: -0.5, color: colors.text, marginTop: 26 },
