@@ -18,6 +18,7 @@ export type Screen =
   | 'notif'
   | 'support'
   | 'admin'
+  | 'adminLogin'
   | 'loans';
 
 export type AuthMode = 'login' | 'signup';
@@ -99,6 +100,15 @@ interface GameState {
   pendingMobile: string;
   devOtpHint: string | null;
 
+  // Admin dashboard is gated separately from player auth — a regular logged-in
+  // player is never a super admin. Local-only credential check for now since
+  // there's no backend admin-role concept yet; swap for a real check once
+  // that exists.
+  adminAuthed: boolean;
+  adminLoginError: string | null;
+  loginAdmin: (username: string, password: string) => void;
+  logoutAdmin: () => void;
+
   balance: number;
   playable: number;
   withdrawable: number;
@@ -167,15 +177,24 @@ interface GameState {
 const ROUND_LEN = 1800;
 
 export const useGameStore = create<GameState>((set, get) => ({
+  // DESIGN_PREVIEW: authed is forced true here so every screen is reachable
+  // without a login/OTP round-trip. token stays null on purpose — every
+  // backend call below already no-ops when there's no token, so this lets
+  // you browse the whole app with zero API traffic. Set back to false (and
+  // this comment can go) once design review is done and it's time to wire
+  // the real auth flow back in.
   screen: 'onboard',
   authMode: 'login',
-  authed: false,
+  authed: true,
   token: null,
   authBusy: false,
   authError: null,
   authStage: 'form',
   pendingMobile: '',
   devOtpHint: null,
+
+  adminAuthed: false,
+  adminLoginError: null,
 
   balance: 0,
   playable: 0,
@@ -217,8 +236,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   loanLimit: 5000,
 
   go: (screen) => {
-    const { authed } = get();
-    if ((screen === 'game' || screen === 'wallet' || screen === 'admin') && !authed) {
+    const { authed, adminAuthed } = get();
+    if (screen === 'admin' && !adminAuthed) {
+      set({ screen: 'adminLogin' });
+      return;
+    }
+    if ((screen === 'game' || screen === 'wallet') && !authed) {
       set({ screen: 'auth' });
       return;
     }
@@ -417,6 +440,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   cancelOtp: () => set({ authStage: 'form', authError: null, devOtpHint: null }),
 
+  // Placeholder credential check — replace with a real backend admin login
+  // once one exists. Not for production use.
+  loginAdmin: (username, password) => {
+    if (username.trim().toLowerCase() === 'admin' && password === 'admin123') {
+      set({ adminAuthed: true, adminLoginError: null, screen: 'admin' });
+    } else {
+      set({ adminLoginError: 'Incorrect username or password' });
+    }
+  },
+  logoutAdmin: () => set({ adminAuthed: false, adminLoginError: null, screen: 'profile' }),
+
   logout: () =>
     set({
       authed: false,
@@ -435,8 +469,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       myBet: null,
       picks: [],
     }),
-  goSignup: () => set({ screen: 'auth', authMode: 'signup', authError: null, authStage: 'form' }),
-  goLogin: () => set({ screen: 'auth', authMode: 'login', authError: null, authStage: 'form' }),
+  goSignup: () =>
+    get().authed
+      ? set({ screen: 'home' })
+      : set({ screen: 'auth', authMode: 'signup', authError: null, authStage: 'form' }),
+  goLogin: () =>
+    get().authed
+      ? set({ screen: 'home' })
+      : set({ screen: 'auth', authMode: 'login', authError: null, authStage: 'form' }),
 
   setBoardTab: (t) => set({ boardTab: t }),
 
@@ -464,3 +504,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 }));
 
 export const money = (n: number) => n.toLocaleString('en-IN');
+
+if (__DEV__) {
+  // Lets test scripts/devtools poke at store state directly, e.g.
+  // window.__NINEBOX_STORE__.setState({ authed: false }).
+  (globalThis as any).__NINEBOX_STORE__ = useGameStore;
+}

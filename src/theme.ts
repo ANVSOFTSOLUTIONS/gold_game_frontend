@@ -44,6 +44,7 @@ export const numberColors: Record<number, [string, string]> = {
   7: ['#748FFC', '#A6B7FD'],
   8: ['#DA77F2', '#E7A9F7'],
   9: ['#F783AC', '#FAAEC7'],
+  0: ['#ADB5BD', '#E9ECEF'],
 };
 
 export const radii = {

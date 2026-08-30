@@ -93,16 +93,16 @@ const SETTINGS_META: { key: AdminConfigKey; label: string; help: string; opts: s
 ];
 
 export default function AdminScreen() {
-  const go = useGameStore((s) => s.go);
   const cfg = useGameStore((s) => s.cfg);
   const setConfig = useGameStore((s) => s.setConfig);
   const roundId = useGameStore((s) => s.roundId);
+  const logoutAdmin = useGameStore((s) => s.logoutAdmin);
 
   const [tab, setTab] = useState<AdminTab>('overview');
 
   return (
     <Screen>
-      <BackButton onPress={() => go('profile')} style={{ marginBottom: 18 }} />
+      <BackButton onPress={logoutAdmin} style={{ marginBottom: 18 }} />
       <Text style={styles.title}>Admin</Text>
       <Text style={styles.sub}>Live · round #{roundId} · house edge {HOUSE_EDGE}%</Text>
 

@@ -20,6 +20,7 @@ import KycScreen from '../screens/KycScreen';
 import NotifScreen from '../screens/NotifScreen';
 import SupportScreen from '../screens/SupportScreen';
 import AdminScreen from '../screens/AdminScreen';
+import AdminLoginScreen from '../screens/AdminLoginScreen';
 import LoanScreen from '../screens/LoanScreen';
 
 const SCREEN_MAP: Record<Screen, React.ComponentType> = {
@@ -39,6 +40,7 @@ const SCREEN_MAP: Record<Screen, React.ComponentType> = {
   notif: NotifScreen,
   support: SupportScreen,
   admin: AdminScreen,
+  adminLogin: AdminLoginScreen,
   loans: LoanScreen,
 };
 
@@ -52,6 +54,7 @@ const BACK_MAP: Partial<Record<Screen, Screen>> = {
   referral: 'rewards',
   auth: 'onboard',
   admin: 'profile',
+  adminLogin: 'profile',
   loans: 'profile',
 };
 

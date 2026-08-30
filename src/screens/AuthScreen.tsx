@@ -19,6 +19,7 @@ export default function AuthScreen() {
   const verifyAuthOtp = useGameStore((s) => s.verifyAuthOtp);
   const resendAuthOtp = useGameStore((s) => s.resendAuthOtp);
   const cancelOtp = useGameStore((s) => s.cancelOtp);
+  const go = useGameStore((s) => s.go);
 
   const isSignup = authMode === 'signup';
   const [name, setName] = useState('');
@@ -157,6 +158,9 @@ export default function AuthScreen() {
         <Text style={styles.switchLink} onPress={toggleAuthMode}>
           {isSignup ? 'Already have an account? Log in' : 'New here? Create an account'}
         </Text>
+        <Text style={styles.adminLink} onPress={() => go('adminLogin')}>
+          Staff member? Admin login
+        </Text>
       </View>
     </LinearGradient>
   );
@@ -240,5 +244,6 @@ const styles = StyleSheet.create({
   checkMark: { fontFamily: fonts.monoBold, fontSize: 11, color: colors.accDeep },
   termsText: { flex: 1, fontFamily: fonts.displayReg, fontSize: 12, lineHeight: 17, color: colors.muted },
   switchLink: { fontFamily: fonts.displayMed, fontSize: 13, color: colors.muted, textAlign: 'center' },
+  adminLink: { fontFamily: fonts.displayMed, fontSize: 11.5, color: colors.faint, textAlign: 'center', marginTop: 18 },
   errorText: { fontFamily: fonts.displayReg, fontSize: 12.5, lineHeight: 18, color: colors.red, marginBottom: 14 },
 });

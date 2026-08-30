@@ -67,7 +67,7 @@ export default function GameScreen() {
         </View>
 
         <View style={styles.grid}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n) => {
             const on = picks.includes(n);
             const [base, light] = numberColors[n];
             const glow = { shadowColor: base, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 };
@@ -207,13 +207,13 @@ const styles = StyleSheet.create({
 
   timerWrap: { alignItems: 'center', marginBottom: 22 },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 11, marginBottom: 22 },
-  cell: { width: '31%', aspectRatio: 1, borderRadius: radii.xl },
-  cellInner: { flex: 1, borderRadius: radii.xl, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 22 },
+  cell: { width: '28%', aspectRatio: 1, borderRadius: radii.lg },
+  cellInner: { flex: 1, borderRadius: radii.lg, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
   cellOn: { borderColor: 'rgba(255,255,255,0.28)' },
   cellOff: { backgroundColor: colors.card, borderColor: colors.border },
-  cellNum: { fontFamily: fonts.monoBold, fontSize: 34 },
-  cellSub: { fontFamily: fonts.monoSemi, fontSize: 9, letterSpacing: 1.2, marginTop: 6 },
+  cellNum: { fontFamily: fonts.monoBold, fontSize: 27 },
+  cellSub: { fontFamily: fonts.monoSemi, fontSize: 8, letterSpacing: 1, marginTop: 5 },
 
   stakeRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   stakeChip: { flex: 1, borderRadius: 14 },

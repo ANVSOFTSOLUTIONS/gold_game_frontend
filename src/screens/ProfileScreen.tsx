@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, radii } from '../theme';
@@ -13,7 +13,6 @@ const STATIC_ROWS: { label: string; value: string; color: string; to: ScreenKey 
   { label: 'Notifications', value: '2 NEW', color: colors.textDim, to: 'notif' },
   { label: 'Help & limits', value: 'OPEN', color: colors.textDim, to: 'support' },
   { label: 'Lifetime winnings', value: '₹14,220', color: colors.acc, to: 'history' },
-  { label: 'Admin dashboard', value: 'OPEN', color: colors.purpleLight, to: 'admin' },
 ];
 
 export default function ProfileScreen() {
@@ -21,6 +20,23 @@ export default function ProfileScreen() {
   const logout = useGameStore((s) => s.logout);
   const points = useGameStore((s) => s.points);
   const loanBalance = useGameStore((s) => s.loanBalance);
+
+  // Admin dashboard has no visible menu entry — tap the avatar 7 times in a
+  // row (like Android's build-number trick) to reach the super-admin login.
+  const tapCount = useRef(0);
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onAvatarPress = () => {
+    tapCount.current += 1;
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    if (tapCount.current >= 7) {
+      tapCount.current = 0;
+      go('adminLogin');
+      return;
+    }
+    tapTimer.current = setTimeout(() => {
+      tapCount.current = 0;
+    }, 2000);
+  };
 
   const rows = [
     { label: 'Rewards & redeem', value: `${money(points)} PTS`, color: colors.gold, to: 'rewards' as ScreenKey },
@@ -38,9 +54,11 @@ export default function ProfileScreen() {
       <Text style={styles.title}>Profile</Text>
 
       <View style={styles.card}>
-        <LinearGradient colors={['#7C5CFF', colors.acc]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.avatar}>
-          <Text style={styles.avatarText}>RM</Text>
-        </LinearGradient>
+        <Pressable onPress={onAvatarPress}>
+          <LinearGradient colors={['#7C5CFF', colors.acc]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.avatar}>
+            <Text style={styles.avatarText}>RM</Text>
+          </LinearGradient>
+        </Pressable>
         <View>
           <Text style={styles.name}>Rahul Menon</Text>
           <Text style={styles.phone}>+91 98765 43210</Text>
