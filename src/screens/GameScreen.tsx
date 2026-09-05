@@ -51,6 +51,38 @@ export default function GameScreen() {
     return () => clearTimeout(id);
   }, [showResult, hit, nextRound]);
 
+  const cellWin = stake * payoutMultiplier;
+
+  const renderCell = (n: number) => {
+    const on = picks.includes(n);
+    const [base, light] = numberColors[n];
+    const glow = { shadowColor: base, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 };
+    return (
+      <Pressable
+        key={n}
+        onPress={() => togglePick(n)}
+        style={({ pressed }) => [styles.cell, on && glow, { opacity: pressed ? 0.85 : 1 }]}
+      >
+        {on ? (
+          <LinearGradient
+            colors={[base, light]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.cellInner, styles.cellOn]}
+          >
+            <Text style={[styles.cellNum, { color: colors.bg }]}>{n}</Text>
+            <Text style={[styles.cellSub, { color: 'rgba(11,12,16,0.65)' }]}>WIN ₹{money(cellWin)}</Text>
+          </LinearGradient>
+        ) : (
+          <View style={[styles.cellInner, styles.cellOff, { borderColor: `${base}55` }]}>
+            <Text style={[styles.cellNum, { color: base }]}>{n}</Text>
+            <Text style={[styles.cellSub, { color: colors.muted }]}>PAY ₹{money(cellWin)}</Text>
+          </View>
+        )}
+      </Pressable>
+    );
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <Screen>
@@ -66,36 +98,11 @@ export default function GameScreen() {
           <TimerRing t={t} total={roundLen} phaseLabel={phaseLabel} />
         </View>
 
-        <View style={styles.grid}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n) => {
-            const on = picks.includes(n);
-            const [base, light] = numberColors[n];
-            const glow = { shadowColor: base, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 };
-            return (
-              <Pressable
-                key={n}
-                onPress={() => togglePick(n)}
-                style={({ pressed }) => [styles.cell, on && glow, { opacity: pressed ? 0.85 : 1 }]}
-              >
-                {on ? (
-                  <LinearGradient
-                    colors={[base, light]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.cellInner, styles.cellOn]}
-                  >
-                    <Text style={[styles.cellNum, { color: colors.bg }]}>{n}</Text>
-                    <Text style={[styles.cellSub, { color: 'rgba(11,12,16,0.65)' }]}>{payoutMultiplier}× PICKED</Text>
-                  </LinearGradient>
-                ) : (
-                  <View style={[styles.cellInner, styles.cellOff, { borderColor: `${base}55` }]}>
-                    <Text style={[styles.cellNum, { color: base }]}>{n}</Text>
-                    <Text style={[styles.cellSub, { color: colors.muted }]}>{payoutMultiplier}× PAY</Text>
-                  </View>
-                )}
-              </Pressable>
-            );
-          })}
+        <View style={styles.grid}>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => renderCell(n))}</View>
+        <View style={styles.zeroRow}>
+          <View style={styles.cellPlaceholder} pointerEvents="none" />
+          {renderCell(0)}
+          <View style={styles.cellPlaceholder} pointerEvents="none" />
         </View>
 
         <SectionLabel>STAKE PER NUMBER</SectionLabel>
@@ -207,13 +214,15 @@ const styles = StyleSheet.create({
 
   timerWrap: { alignItems: 'center', marginBottom: 22 },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 22 },
-  cell: { width: '28%', aspectRatio: 1, borderRadius: radii.lg },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9, marginBottom: 9 },
+  zeroRow: { flexDirection: 'row', gap: 9, marginBottom: 22 },
+  cell: { width: '25%', aspectRatio: 1, borderRadius: radii.md },
+  cellPlaceholder: { width: '25%' },
   cellInner: { flex: 1, borderRadius: radii.lg, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
   cellOn: { borderColor: 'rgba(255,255,255,0.28)' },
   cellOff: { backgroundColor: colors.card, borderColor: colors.border },
-  cellNum: { fontFamily: fonts.monoBold, fontSize: 27 },
-  cellSub: { fontFamily: fonts.monoSemi, fontSize: 8, letterSpacing: 1, marginTop: 5 },
+  cellNum: { fontFamily: fonts.monoBold, fontSize: 24 },
+  cellSub: { fontFamily: fonts.monoSemi, fontSize: 7.5, letterSpacing: 0.3, marginTop: 5 },
 
   stakeRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   stakeChip: { flex: 1, borderRadius: 14 },
